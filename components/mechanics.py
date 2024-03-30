@@ -6,11 +6,25 @@ class Mechanic():
     def __init__(self, forced=False):
         self.forced = forced
 
-class Trade(Mechanic): 
+class Village(Mechanic):
+    def __init__(self, forced=True):
+        # Maybe we shouldn't force this one?
+        super().__init__(forced)
+
+    def execute(self, entities, player):
+        print("Welcome to the Village!")
+        """ This Input Handler should return us the trade or level up or rest machanic"""
+        input_handlers.village(player)
+
+class Trade(Mechanic):
+    """
+    This class will handle the trading mechanics.
+    Right now a lot of it is still inside the input handler :c
+    """
     def __init__(self, forced=False):
         super().__init__(forced)
-        
-    
+
+
     def execute(self, entities, player):
         print(f"Welcome to my shop! Would you like to buy or sell something?")
         input_handlers.trading(entities[0], player)
@@ -18,31 +32,28 @@ class Trade(Mechanic):
 class Risk_Reward(Mechanic):
     def __init__(self, forced=True):
         super().__init__(forced)
-    
-    def execute(self, entities, player, objects_ls=[]):
-        # invisibility route here?
-        if player.invisible:
-            # create a seperate function
-            result_invis = self.execute_invisible(entities, player, objects_ls)
-            if result_invis == 1:
-                result 
-            else:
-                return result_invis
 
-            
+    def execute(self, entities, player, objects_ls=[]):
+        # invisibility route
+        if player.invisible:
+            # get player input
+            result_invis = self.execute_invisible(entities, player, objects_ls)
+            return result_invis
+
+
         result = input_handlers.risk_reward(entities, player)
         if result == 1:
             # grab fighter entities in entities via isinstance
             entities = [entity for entity in entities if isinstance(entity, Fighter)]
             result = Combat().execute(entities, player)
         return result
-        
+
     def execute_invisible(self, entities, player, objects_ls=[]):
         # different input handler for invisible player
             result_invis = input_handlers.invisible_risk_reward(player, entities, objects_ls)
 
             if result_invis == 1:
-                # the player decided to fight 
+                # the player decided to fight
                 return self.combat_out_stealth(entities, player, objects_ls)
             elif result_invis == 2:
                 # the player decided to flee
@@ -58,7 +69,7 @@ class Risk_Reward(Mechanic):
                     return 0
                 else:
                     return self.combat_out_stealth(entities, player)
-                 
+
     def steal(self, entities, player, objects_ls=[]):
         """This function will handle the stealing of an item from the risk and reward encounter."""
 
@@ -77,7 +88,7 @@ class Risk_Reward(Mechanic):
         else:
             print("You failed to steal the item! \n You may get a Move in before it gets ugly.")
             return 1
-    
+
     def combat_out_stealth(self, entities, player):
         """This function will handle the combat after the player has failed to steal an item."""
         move_input = input_handlers.combat(player)
@@ -90,7 +101,7 @@ class Combat(Mechanic):
     """This class will handle the combat mechanics."""
     def __init__(self, forced=True):
        super().__init__(forced)
-    
+
     def execute(self, entities, player):
         print("Combat!")
         round = 0
@@ -112,7 +123,7 @@ class Combat(Mechanic):
                     return 2 # player fled
                 else:
                     print("You failed to flee!")
-            
+
             if menu_input == 1:
                 # player is fighting
                 # should return the move the player wants to use
@@ -144,5 +155,5 @@ class Combat(Mechanic):
         else:
             print("You failed to flee!")
             return 1
-        
+
 

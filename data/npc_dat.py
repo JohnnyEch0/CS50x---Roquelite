@@ -28,3 +28,29 @@ npc_traders = [
     (MIRA, 3),
     (KORGRIM, 1),  # Very rare, trades in powerful, cursed items.
 ]
+
+
+"""
+The Village NPC's
+ """
+# The Village is a place where the player can buy and sell items, level up and Rest.
+WARDEN_INNKEEPER = {
+    "name": "Warden Innkeeper",
+    "faction": "Hive",
+    "money_mod": 3,
+    "inventory_mod": 0
+}
+
+WARDEN_TRADER = {
+    "name": "Warden Trader",
+    "faction": "Hive",
+    "money_mod": 5,
+    "inventory_mod": 1
+}
+
+WARDEN_SENSEI = {
+    "name": "Warden Sensei",
+    "faction": "Hive",
+    "money_mod": 2,
+    "inventory_mod": 0
+}

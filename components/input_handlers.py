@@ -1,6 +1,6 @@
 import utils
 from dicts import exp_keys, combat_keys, combat_keys_extended
-from items import Item 
+from items import Item
 
 def exploration(objects, player, entitites, unf_mechanic=None):
     # print part of the function
@@ -15,6 +15,7 @@ def exploration(objects, player, entitites, unf_mechanic=None):
 
     # input handling part of the function
     if input == exp_keys[0]:
+        # TODO: Seperate Function.
         objects_selector = items_overview(objects)
         if objects_selector:
             objects.remove(objects_selector)
@@ -39,7 +40,7 @@ def exploration(objects, player, entitites, unf_mechanic=None):
         return 1
     elif input == exp_keys[-1]:
         return 0
-    
+
     return 0 # for now we return 0 if smth isnt implemented, so as to move the player
 
 def items_overview(objects):
@@ -56,7 +57,37 @@ def items_overview(objects):
             if input == combat_keys[i]:
                 return item
     return
-    
+
+"""
+Village Mechanics
+"""
+def village(entitites, player):
+    # print part of the function
+    NPC_amt = len(entitites) # count NPC'S
+    options = []
+    prompt = f"What would you like to do? "
+    if entitites:
+        for i, entity in enumerate(entitites):
+            # maximum of 5 entitites
+            # 3 will always be present
+            # but the inkeep and the sensei get seperate options
+            prompt += f"    Talk to {entity.name} = {combat_keys_extended[i]}"
+            options.append( combat_keys_extended[i] )
+
+    prompt += f"    Rest = {combat_keys_extended[NPC_amt]}
+                    Training = {combat_keys_extended[NPC_amt + 1]}
+                    Access ur inventory = {combat_keys_extended[NPC_amt + 2]}
+                    Move to the next scene = {combat_keys_extended[NPC_amt + 3]}
+                "
+                # add 4 additional options
+                # do we need to do these seperately with append??
+                options.append ( combat_keys_extended[:NPC_amt:NPC_amt+3])
+    input = utils.get_input(prompt, options)
+
+    # input handling part of the function
+    for i
+
+    return 0 # for now we return 0 if smth isnt implemented, so as to move the player
 """
 trade things
 """
@@ -69,15 +100,15 @@ def trading(trader, player):
 
     elif input == combat_keys[1]:
         selling(trader, player)
-    
+
     elif input == combat_keys[2]:
         print("Talking not implemented")
-    
+
     else:
         return
-    
+
     trading(trader, player)
-        
+
 def buying(trader, player):
     prompt = "What would you like to buy?    "
     if not trader.inventory:
@@ -135,7 +166,7 @@ encounter things
 def risk_reward(entities, player):
     """This function will handle the risk and reward encounter.
      --> allow the player to take a battle with high reward or flee"""
-    
+
     risk_reward_info(entities)
 
     prompt = "Risk and Reward:    Fight = Q    Flee = W"
@@ -154,7 +185,7 @@ def risk_reward_info(entities):
             info += "and "
     info += "\n They look dangerous, but have some good loot."
     print(info)
-    
+
 
 def combat(player):
     """This function will handle any attack selection."""
@@ -166,7 +197,7 @@ def combat(player):
         if fight_input == combat_keys[i]:
             return player.moves[i]
 
-    
+
     pass
 
 def combat_menu(player):
@@ -185,14 +216,14 @@ def invisible_risk_reward(player, entities, objects_ls=[]):
     """This function will handle the risk and reward encounter for invisible players."""
 
     risk_reward_info(entities)
-    
+
 
     prompt = "Risk and Reward:    Fight = Q    Flee = W    Stay Invisible = E "
     # check if there is an item in the entities
     if objects_ls:
         prompt += f"    Steal the Loot = R"
-        
-    
+
+
     input = utils.get_input(prompt, combat_keys)
     if input == combat_keys[0]:
         # start combat after the player gets a hit in
@@ -211,7 +242,7 @@ def invisible_risk_reward(player, entities, objects_ls=[]):
         else:
             print("There is nothing to steal. \n staying invisible.")
             return 3
-        
+
     pass
 """
 inventory things
@@ -245,5 +276,5 @@ def inv_items_consumables(player):
                 break
     else:
         return
-    
+
     return
