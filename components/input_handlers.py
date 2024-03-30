@@ -8,7 +8,9 @@ def exploration(objects, player, entitites, unf_mechanic=None):
     if objects:
         prompt += f"    Objects = {exp_keys[0]}"
     prompt += f"    Inventory = {exp_keys[1]}"
+
     if unf_mechanic:
+        # TODO: Make the Village Start-option different
         prompt += f"   Talk to {entitites[0].name} = {exp_keys[-2]}"
     prompt += f"    Move to the next scene = {exp_keys[-1]}"
     input = utils.get_input(prompt, exp_keys)
