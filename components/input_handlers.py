@@ -109,6 +109,7 @@ def village(entitites, player):
 
 
     return 0 # for now we return 0 if smth isnt implemented, so as to move the player
+
 """
 trade things
 """
