@@ -37,9 +37,9 @@ def exploration(objects, player, entitites, unf_mechanic=None):
         # Moved further inv handeling to inv_overview
 
     elif input == exp_keys[-2]:
-        return 1
+        return 1 # trigger unf mechanic from main
     elif input == exp_keys[-1]:
-        return 0
+        return 0 # trigger movement from main
 
     return 0 # for now we return 0 if smth isnt implemented, so as to move the player
 
