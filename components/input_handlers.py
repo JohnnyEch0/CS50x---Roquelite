@@ -62,6 +62,7 @@ def items_overview(objects):
 Village Mechanics
 """
 def village(entitites, player):
+    """ unfinished, untested """
     # print part of the function
     NPC_amt = len(entitites) # count NPC'S
     options = []
