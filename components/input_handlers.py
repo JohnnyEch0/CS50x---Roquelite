@@ -96,8 +96,8 @@ def village(entitites, player):
             print(f"Training hard, Level-Up Mechanic not implemented")
 
         elif input == combat_keys_extended[NPC_amt+2]:
-            # return inventory thinks
-            print(f"Inv")
+            inventory_overview(player)
+            # print(f"Inv")
 
         elif input == combat_keys_extended[NPC_amt+3]:
             # movement
