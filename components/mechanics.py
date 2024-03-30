@@ -7,14 +7,14 @@ class Mechanic():
         self.forced = forced
 
 class Village(Mechanic):
-    def __init__(self, forced=True):
+    def __init__(self, forced=False):
         # Maybe we shouldn't force this one?
         super().__init__(forced)
 
     def execute(self, entities, player):
         print("Welcome to the Village!")
         """ This Input Handler should return us the trade or level up or rest machanic"""
-        input_handlers.village(player)
+        input_handlers.village(entitites, player)
 
 class Trade(Mechanic):
     """
