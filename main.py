@@ -68,6 +68,8 @@ def update(player_upd, level_upd):
         unforced_mechanic.execute(entities, player_upd)
     elif expo == 0:
         player_upd.move(room_rn)
+    # other things are done by the input handler (Inventory)
+
 
     return True
 
