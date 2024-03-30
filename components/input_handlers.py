@@ -79,13 +79,13 @@ def village(entitites, player):
                     Access ur inventory = {combat_keys_extended[NPC_amt + 2]}
                     Move to the next scene = {combat_keys_extended[NPC_amt + 3]}
                 "
-                # add 4 additional options
-                # do we need to do these seperately with append??
-                options.append ( combat_keys_extended[:NPC_amt:NPC_amt+3])
+                    # add 4 additional options
+                    # do we need to do these seperately with append??
+                    options.append ( combat_keys_extended[:NPC_amt:NPC_amt+3])
     input = utils.get_input(prompt, options)
 
     # input handling part of the function
-    for i
+    for i in
 
     return 0 # for now we return 0 if smth isnt implemented, so as to move the player
 """
