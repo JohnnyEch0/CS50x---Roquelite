@@ -85,7 +85,27 @@ def village(entitites, player):
     input = utils.get_input(prompt, options)
 
     # input handling part of the function
-    for i in
+    for i in entities:
+        # call dialoquge(entity[i]) OR just call Trade() ?
+        # dont call this for Training and Rest
+        if input == combat_keys_extended[i]:
+            print(f"you talkt to {i.name}")
+        elif input == combat_keys_extended[NPC_amt]:
+            # return rest mechanic or rest inout handler
+            print(f"Sleep well")
+        elif input == combat_keys_extended[NPC_amt+1]:
+            # return training mechanic or rest inout handler
+            print(f"Training hard, Level-Up Mechanic not implemented")
+
+        elif input == combat_keys_extended[NPC_amt+2]:
+            # return inventory thinks
+            print(f"Inv")
+
+        elif input == combat_keys_extended[NPC_amt+3]:
+            # movement
+            print(f"Move")
+
+
 
     return 0 # for now we return 0 if smth isnt implemented, so as to move the player
 """
