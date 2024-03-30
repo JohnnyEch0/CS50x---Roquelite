@@ -64,7 +64,7 @@ def update(player_upd, level_upd):
 
     # this will return 1 when mechanic should be raised, 0 if moving to the next scene
     expo = input_handlers.exploration(room_rn.encounter.objects_ls, player_upd, entities, unforced_mechanic)
-    if expo == 1:
+    if expo == 1 and unforced_mechanic:
         unforced_mechanic.execute(entities, player_upd)
     elif expo == 0:
         player_upd.move(room_rn)
