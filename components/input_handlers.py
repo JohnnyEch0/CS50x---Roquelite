@@ -32,10 +32,8 @@ def exploration(objects, player, entitites, unf_mechanic=None):
         # structures give Lore or Clues
     elif input == exp_keys[1]:
         inv_selector = inventory_overview(player)
-        if inv_selector == 1:
-            inv_items_consumables(player)
-        elif inv_selector == 2:
-            print("Equipment not implemented")
+        # Moved further inv handeling to inv_overview
+
     elif input == exp_keys[-2]:
         return 1
     elif input == exp_keys[-1]:
@@ -263,7 +261,7 @@ def invisible_risk_reward(player, entities, objects_ls=[]):
             print("There is nothing to steal. \n staying invisible.")
             return 3
 
-    pass
+
 """
 inventory things
 """
@@ -274,11 +272,12 @@ def inventory_overview(player):
     prompt += f"    Gold Total: {player.inventory[0].amount}"
     input = utils.get_input(prompt, combat_keys)
     if input == combat_keys[0]:
-        return 1
+        inv_items_consumables(player)
     elif input == combat_keys[1]:
-        return 2
+        print("Equipment not implemented")
     else:
-        return
+        return 0
+    return
 
 def inv_items_consumables(player):
     prompt = "Consumables:    "
