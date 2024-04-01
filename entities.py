@@ -1,9 +1,9 @@
 import random
 
-import actions
+import components.actions as actions
 import utils
 from data import moves_dat, items_dat, fighters_dat
-from dicts import dict_directions, combat_keys
+from data.input_dicts import dict_directions, combat_keys
 import items
 
 

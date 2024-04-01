@@ -1,5 +1,5 @@
 import utils, random
-from dicts import exp_keys, combat_keys, combat_keys_extended
+from data.input_dicts import exp_keys, combat_keys, combat_keys_extended
 from items import Item
 from data import fighters_dat
 

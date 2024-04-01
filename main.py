@@ -1,6 +1,6 @@
 import random
 
-import actions
+import components.actions as actions
 
 import entities
 from entities import Fighter
@@ -9,7 +9,7 @@ from data import moves_dat, fighters_dat
 
 from components import effects, input_handlers
 from utils import Vector2
-import proc_gen
+import map.proc_gen as proc_gen
 
 
 Game = True
