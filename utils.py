@@ -58,6 +58,7 @@ def random_choice(dataset):
     return random.choices(list(dataset.keys()), weights=list(dataset.values()))[0]
 
 def random_choice_list_tuple(dataset):
+    """ dataset is a list of tuples, where the first element of the tuple is the choice and the second element is the weight """
     weights = [item[1] for item in dataset]
     choices = [item[0] for item in dataset]
     return random.choices(choices, weights=weights)[0]

@@ -13,7 +13,6 @@ import map.proc_gen as proc_gen
 
 
 Game = True
-Level_Dim = 5
 
 player_name = "John"  # input("What is your Name? \n")
 print(f"Hello {player_name}! \n")
