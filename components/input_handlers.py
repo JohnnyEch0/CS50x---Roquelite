@@ -1,6 +1,7 @@
-import utils
+import utils, random
 from dicts import exp_keys, combat_keys, combat_keys_extended
 from items import Item
+from data import fighters_dat
 
 def exploration(objects, player, entitites, unf_mechanic=None):
     # print part of the function
@@ -61,54 +62,138 @@ def items_overview(objects):
 """
 Village Mechanics
 """
-def village(entitites, player):
+def village(entities, player):
     """ unfinished, untested """
     # print part of the function
-    NPC_amt = len(entitites) # count NPC'S
+    NPC_amt = len(entities) # count NPC'S
     options = []
     prompt = f"What would you like to do? "
-    if entitites:
-        for i, entity in enumerate(entitites):
-            # maximum of 5 entitites
-            # 3 will always be present
+    if entities:
+        for i, entity in enumerate(entities):
+            # 1 Trader will always be present
             # but the inkeep and the sensei get seperate options
             prompt += f"    Talk to {entity.name} = {combat_keys_extended[i]}"
             options.append( combat_keys_extended[i] )
 
-    prompt += f"    Rest = {combat_keys_extended[NPC_amt]}
-                    Training = {combat_keys_extended[NPC_amt + 1]}
-                    Access ur inventory = {combat_keys_extended[NPC_amt + 2]}
-                    Move to the next scene = {combat_keys_extended[NPC_amt + 3]}
-                "
-                    # add 4 additional options
-                    # do we need to do these seperately with append??
-                    options.append ( combat_keys_extended[:NPC_amt:NPC_amt+3])
+    prompt += f"    Rest = {combat_keys_extended[NPC_amt]}    Training = {combat_keys_extended[NPC_amt + 1]}"
+    prompt += f"Access ur inventory = {combat_keys_extended[NPC_amt + 2]}   Move to the next scene = {combat_keys_extended[NPC_amt + 3]}"
+    options.extend(combat_keys_extended[NPC_amt:NPC_amt+4])
+
+
+    """ input handling part of the function """
+
     input = utils.get_input(prompt, options)
-
-    # input handling part of the function
-    for i in entities:
+    for i, entity in enumerate(entities):
         # call dialoquge(entity[i]) OR just call Trade() ?
-        # dont call this for Training and Rest
         if input == combat_keys_extended[i]:
-            print(f"you talkt to {i.name}")
-        elif input == combat_keys_extended[NPC_amt]:
-            # return rest mechanic or rest inout handler
-            print(f"Sleep well")
-        elif input == combat_keys_extended[NPC_amt+1]:
-            # return training mechanic or rest inout handler
-            print(f"Training hard, Level-Up Mechanic not implemented")
+            print(f"you talkt to {entity.name}")
+    if input == combat_keys_extended[NPC_amt]:
+        # return rest mechanic or rest inout handler
+        rest(player)
+        print(f"Sleep well")
+    elif input == combat_keys_extended[NPC_amt+1]:
+        # return training mechanic or rest inout handler
+        print(f"Training hard, Level-Up Mechanic not implemented")
 
-        elif input == combat_keys_extended[NPC_amt+2]:
-            inventory_overview(player)
-            # print(f"Inv")
 
-        elif input == combat_keys_extended[NPC_amt+3]:
-            # movement
-            print(f"Move")
+    elif input == combat_keys_extended[NPC_amt+2]:
+        inventory_overview(player)
+        # print(f"Inv")
+
+    elif input == combat_keys_extended[NPC_amt+3]:
+        # movement
+        print(f"Move")
 
 
 
     return 0 # for now we return 0 if smth isnt implemented, so as to move the player
+
+def rest(player):
+    """This function will handle the rest and training mechanic."""
+    # depending on how much money the player wants to spend, he can add multipliers to his Exp or Health
+
+    """ Healing mechanic """
+    # first 5 gold will heal the player fully
+    if player.inventory[0].amount < 5:
+        print("You do not have enough gold to rest.")
+        return
+    else:
+        player.inventory[0].amount -= 5
+        player.healt = player.max_health
+        print(f"{player.name} healed fully.")
+
+    """ exp boost mechanic"""
+    price_exp_boost = (30 * player.level + 50 ) * (random.randint(1, 30) + 80) / 100
+
+    if player.inventory[0].amount < price_exp_boost:
+        print("You do not have enough gold to train.")
+        return
+    else:
+        # prompt player to choose if they want to spend the money
+        prompt = f"Would you like to spend {price_exp_boost} gold to train?    Yes = Q    No = W"
+        input = utils.get_input(prompt, ["Q", "W"])
+
+        if input == "Q":
+            player.inventory[0].amount -= price_exp_boost
+            player.exp = player.exp * 1.5
+            print(f"{player.name} added 50% exp.")
+
+
+    """ Levelling Up """
+    # TODO: check wether the player has enough exp to level up
+    while player.exp >= fighters_dat.EXP_THRESHHOLDS[player.level]:
+        print("You have enough exp to level up.")
+        level_up(player)
+    
+
+def level_up(player):
+    # get the users old stats
+    old_stats = player.get_stats_as_dict()
+    
+    # get input on the how the user wants to spend their free 6 Attribute Points per Level:
+    # prompt
+    print("What do you want to spend your attribute points on?")
+    att_points_spend = 0
+    while att_points_spend < 6:
+        prompt = ""
+        if att_points_spend < 6:
+            available_points = 6 - att_points_spend
+            prompt += f"    You have {available_points} points left."
+        prompt += f"    Health = Q    Attack = W    Spell Attack = E    Defense = R    Spell Defense = T    Initiative = Z"
+
+        # get the input
+        att_input = utils.get_input(prompt, combat_keys_extended[:6])
+        
+        amt_input = utils.get_input("How many points do you want to spend?", [str(i+1) for i in range(available_points)])
+
+        if update_player_stat_points(player, att_input, amt_input):
+            att_points_spend += int(amt_input)
+        
+    # execute the level up
+    player.level += 1
+    player.update_stats(fighters_dat.player_stat_upgrade)
+
+    print_level_up_info(old_stats, player)
+    
+
+def update_player_stat_points(player, att, amt):
+    """ This function updates the player stat choices"""
+    for i, stat in enumerate(fighters_dat.player_stat_upgrade):
+        if att == combat_keys_extended[i]:
+            fighters_dat.player_stat_upgrade[stat] += int(amt)
+            return True
+    return False
+
+def print_level_up_info(old_stats, player):
+    print(f" \n ----Level up! {player.name} is now level {player.level}.----")
+    # print(f"Old Stats: {old_stats}")
+    # print(f"New Stats: \n{player.get_stats()}")
+    # print stats like old-stat --> new stat
+    new_stats = player.get_stats_as_dict()
+    for stat in new_stats:
+        print(f"{stat}: {old_stats[stat]} --> {new_stats[stat]}")
+
+
 
 """
 trade things

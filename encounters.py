@@ -25,12 +25,12 @@ class Encounter():
             return self.roll_friendly_npc()
         elif self.type == "Risk & Reward":
             return self.roll_risk_rew()
-        elif self.type == "Village":
+        elif self.type == "village":
             # generate Village scene
             # maybe this should be called every time we get into the hub
             # rn this is getting called by the room, when it is generated
             return self.village()
-            pass
+
         else:
             return [], None
 
@@ -49,7 +49,7 @@ class Encounter():
         entities_ls = []
         for i in range(random.randint(2, 4)):
             roll = utils.random_choice_list_tuple(fighters_dat.goblins)
-            entities_ls.append(entities.Fighter(**roll))
+            entities_ls.append(entities.Fighter(level=1, **roll))
 
         roll = utils.random_choice_list_tuple(items_dat.uncommon_items)
         self.objects_ls.append(items.Item(**roll))
@@ -57,15 +57,17 @@ class Encounter():
         return entities_ls, mechanics.Risk_Reward()
 
     """ Village """
+
     def village(self):
         """Generate the village scene."""
         """ Static NPC'S """
         entities_ls = []
         entities_ls.append(entities.Trader(**npc_dat.WARDEN_TRADER))
-        entities_ls.append(entities.Trader(**npc_dat.WARDEN_INNKEEPER))
-        entities_ls.append(entities.Trader(**npc_dat.WARDEN_SENSEI))
-        
-        """ ´Sometimes there should be a fourth NPC"""
+        """ Warden and Keeper get their own mechanix """
+        # entities_ls.append(entities.Trader(**npc_dat.WARDEN_INNKEEPER))
+        # entities_ls.append(entities.Trader(**npc_dat.WARDEN_SENSEI))
+
+        """ ´Sometimes there should be a fourth/... NPC"""
         # TODO
 
         return entities_ls, mechanics.Village()

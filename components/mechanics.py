@@ -14,7 +14,7 @@ class Village(Mechanic):
     def execute(self, entities, player):
         print("Welcome to the Village!")
         """ This Input Handler should return us the trade or level up or rest machanic"""
-        input_handlers.village(entitites, player)
+        input_handlers.village(entities, player)
 
 class Trade(Mechanic):
     """
@@ -105,6 +105,7 @@ class Combat(Mechanic):
     def execute(self, entities, player):
         print("Combat!")
         round = 0
+        enemies = [entity for entity in entities if entity.faction != "Heroes"]
         entities.append(player)
         ini_list = sorted(entities, key=lambda x: x.initiative, reverse=True)
         while True:
@@ -116,7 +117,9 @@ class Combat(Mechanic):
 
             # returning 2 means trying to fleeing
             if menu_input == 2:
-                result = self.flee(player)
+                # entitites mod should be the average if the entitites initiative
+                enemies_mod = sum([entity.initiative for entity in enemies]) / len(enemies) 
+                result = self.flee(player, enemies_mod)
                 if result == 2:
                     player.move_back()
                     print("You fled!")
@@ -134,7 +137,12 @@ class Combat(Mechanic):
             for i in ini_list:
                 if i.health < 1:
                     ini_list.remove(i)
-                    print(f"{i.name} died.")
+                    print(f"{i.name} died. ")
+                    if i.faction != "Heroes":
+                        player.exp += i.exp_given
+                        print(f"You gained {i.exp_given} exp!")
+                    
+                    
                 if i.faction == "Heroes":
                     # move handles the target selection
                     move_input.use(player, ini_list)
@@ -147,9 +155,9 @@ class Combat(Mechanic):
                 print(f"----room cleared----\n")
                 return 0
 
-    def flee(self, player):
+    def flee(self, player, enemy_mod):
         """This function will handle the fleeing of the player."""
-        if random.randint(0, 100) > player.initiative:
+        if random.randint(0, 100) + enemy_mod > player.initiative:
             print("You fled!")
             return 2
         else:

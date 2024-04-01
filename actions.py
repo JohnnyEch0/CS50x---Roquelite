@@ -3,7 +3,7 @@ import random
 import utils
 from dicts import combat_keys
 
-# Targetting System
+""" This module contains the classes for the different actions that can be taken in combat. """
 
 def get_target(entities_enc, fighter):
         """Returns the target of the action. 
@@ -65,11 +65,12 @@ class Heal(Action):
 
 
 class Attack(Action):
-    def __init__(self, fighter, name, damage, accuracy=100, effect=None):
+    def __init__(self, fighter, name, damage, accuracy=100, effect=None, type="physical"):
         Action.__init__(self, fighter, name, effect=None)
         self.damage = damage
         self.accuracy = accuracy
         self.effect = effect
+        self.type = type
 
     def use(self, fighter, entities_enc):
         target = get_target(entities_enc, fighter)
@@ -78,13 +79,33 @@ class Attack(Action):
         if random.randint(1, 100) > self.accuracy - target.evasion:
             print(
                 f"{fighter.name} missed {target.name}")
-
-        random_mod = random.randint(60, 100) / 100
-        damage = int(fighter.attack + self.damage - target.defense * random_mod)
-
+            
+        """ Damage calculation """
+        damage = self.damage_calc(fighter, target)
         target.health -= damage
+
         print(
             f"{fighter.name} hit {target.name} for {damage} dmg, it is at {target.health} HP")
+        
         if self.effect:
             print("Effect! nnnnot implemented yet!")
             # self.effect.use(fighter, entities_enc)
+    
+    def damage_calc(self, fighter, target):
+        """ THis will calc the damage, Pokemon Style """
+        # level and crit
+        crit_roll = 2 if random.randint(1, 20) <= fighter.crit_chance else 1
+        lev_crit = fighter.level * crit_roll / 5 + 2
+        # Move power, Attack and Defense
+        if self.type == "physical":
+            atk_def = fighter.attack / target.defense
+        else:
+            atk_def = fighter.spell_attack / target.spell_def
+
+        non_rand = lev_crit * atk_def * self.damage / 50 + 2
+
+        # random modifier
+        random_mod = random.randint(85, 100) / 100
+
+        return int(non_rand * random_mod)
+

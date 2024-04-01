@@ -32,7 +32,8 @@ npc_traders = [
 
 """
 The Village NPC's
- """
+"""
+
 # The Village is a place where the player can buy and sell items, level up and Rest.
 WARDEN_INNKEEPER = {
     "name": "Warden Innkeeper",
