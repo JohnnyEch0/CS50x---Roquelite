@@ -1,4 +1,3 @@
-import random
 
 import components.actions as actions
 
@@ -7,17 +6,19 @@ from entities import Fighter
 
 from data import moves_dat, fighters_dat
 
-from components import effects, input_handlers
+from components import input_handlers
 from utils import Vector2
 import map.proc_gen as proc_gen
 
 
 Game = True
 
+level1 = proc_gen.Level()
+
 player_name = "John"  # input("What is your Name? \n")
 print(f"Hello {player_name}! \n")
 
-level1 = proc_gen.Level()
+
 
 player = entities.Player(Vector2(14, 13),
                          player_name,
@@ -26,6 +27,11 @@ player.moves = [
     actions.Attack(player, **moves_dat.TACKLE_DATA),
     actions.Heal(player, "Heal", 40)
 ]
+
+
+
+InputHandler = input_handlers.InputHandler(player, level1)
+
 
 
 
@@ -42,7 +48,7 @@ def update(player_upd, level_upd):
     unforced_mechanic = None
     if mechanic:
         if mechanic.forced:
-            forc = mechanic.execute(entities, player_upd, objects_ls=room_rn.encounter.objects_ls)
+            forc = mechanic.execute(entities, player_upd, InputHandler, objects_ls=room_rn.encounter.objects_ls)
             # returning 2 shall sent the player back to the previous room
             if forc == 2:
                 player_upd.move_back()
@@ -62,15 +68,14 @@ def update(player_upd, level_upd):
     """
 
     # this will return 1 when mechanic should be raised, 0 if moving to the next scene
-    expo = input_handlers.exploration(room_rn.encounter.objects_ls, player_upd, entities, unforced_mechanic)
+    expo = InputHandler.exploration(room_rn.encounter.objects_ls, entities, unforced_mechanic)
     if expo == 1 and unforced_mechanic:
         # TODO: Make the Village Start-option different
         # RN: Talk to NPC[0]
-        unforced_mechanic.execute(entities, player_upd)
-    elif expo == 0:
-        player_upd.move(room_rn)
-    # other things are done by the input handler (Inventory)
 
+        unforced_mechanic.execute(entities, player_upd, InputHandler)
+    elif expo == 0:
+        InputHandler.movement(room_rn)
 
     return True
 

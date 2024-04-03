@@ -156,7 +156,7 @@ class Player(Fighter):
                             moves,
                             faction
                         )
-        self.exp = 0
+        self.exp = 500
         self.level = 1
         self.pos = pos
         self.inventory = [items.Gold(100), items.Item(**items_dat.HEALING_POTION), items.Item(**items_dat.DUST_OF_DISAPPEARANCE)]
@@ -164,9 +164,7 @@ class Player(Fighter):
         self.base_stats = { "health": base_health, "attack": base_attack, "spell_attack": base_spell_attack, "defense": base_defense, "spell_def": base_spell_def, "initiative": base_initiative }
 
 
-    """ Player Stats calculation
-    These need to take into account that the level will rise.
-    """
+    """ Player Stats calculation  """
 
     def calculate_health(self, base_value):
         # we need to take into account the players inputs on level up
@@ -187,11 +185,9 @@ class Player(Fighter):
         self.spell_def = self.calculate_stats(self.base_stats["spell_def"]) + dict["spell_def"]
 
         self.initiative = self.calculate_stats(self.base_stats["initiative"]) + dict["initiative"]
-        
-        
-
 
     """ Player Battle Functions """
+
     def fight(self, entities_enc):
         prompt = "Your Turn:    "
         for i, move in enumerate(self.moves):
@@ -205,29 +201,6 @@ class Player(Fighter):
 
         # no longer invisible after attacking
         self.invisible = False
-
-
-    """  Player Movement """
-
-    def move(self, room_mv):
-        # this was N, E, S, W
-        # we need to get the same from the new system
-        directions = room_mv.walkable_tiles
-        # print(f"---&debug walkable_tiles @player.move: {directions}")
-
-        passage_input = utils.get_input(f"Where will you go: {directions}?", directions)
-
-        self.prev_pos = utils.Vector2(self.pos[0], self.pos[1])
-        # print("before move", self.pos[0], self.pos[1], "prev: ", self.prev_pos[0], self.prev_pos[1])
-
-        self.pos += dict_directions[f"{passage_input}"]
-
-        # check if the player is invisible
-        if self.invisible:
-            self.invisible_timer -= 1
-            self.check_invisible()
-
-        # print("after move", self.pos[0], self.pos[1], "prev: ", self.prev_pos[0], self.prev_pos[1])
 
     def move_back(self):
         self.pos = self.prev_pos

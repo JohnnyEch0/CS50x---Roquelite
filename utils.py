@@ -4,7 +4,8 @@ def get_input(text, options):
     while True:
         answer = input(f"{text}\n")
         answer = answer.upper()
-        if answer in options:
+        # options may have exit="Any other key"
+        if answer in options or "Any other key" in options:
             # print(f"\n")
             return answer
         elif answer == "ESC":

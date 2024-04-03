@@ -1,4 +1,4 @@
-from components import input_handlers
+
 import random
 from entities import Fighter
 
@@ -11,10 +11,10 @@ class Village(Mechanic):
         # Maybe we shouldn't force this one?
         super().__init__(forced)
 
-    def execute(self, entities, player):
+    def execute(self, entities, player, InputHandler):
         print("Welcome to the Village!")
         """ This Input Handler should return us the trade or level up or rest machanic"""
-        input_handlers.village(entities, player)
+        InputHandler.village(entities)
 
 class Trade(Mechanic):
     """
@@ -25,36 +25,35 @@ class Trade(Mechanic):
         super().__init__(forced)
 
 
-    def execute(self, entities, player):
+    def execute(self, entities, player, InputHandler):
         print(f"Welcome to my shop! Would you like to buy or sell something?")
-        input_handlers.trading(entities[0], player)
+        InputHandler.trading(entities[0], player)
 
 class Risk_Reward(Mechanic):
     def __init__(self, forced=True):
         super().__init__(forced)
 
-    def execute(self, entities, player, objects_ls=[]):
+    def execute(self, entities, player, InputHandler, objects_ls=[] ):
         # invisibility route
         if player.invisible:
             # get player input
-            result_invis = self.execute_invisible(entities, player, objects_ls)
+            result_invis = self.execute_invisible(entities, player,InputHandler , objects_ls )
             return result_invis
 
-
-        result = input_handlers.risk_reward(entities, player)
+        result = InputHandler.risk_reward(entities)
         if result == 1:
             # grab fighter entities in entities via isinstance
             entities = [entity for entity in entities if isinstance(entity, Fighter)]
-            result = Combat().execute(entities, player)
+            result = Combat().execute(entities, player, InputHandler)
         return result
 
-    def execute_invisible(self, entities, player, objects_ls=[]):
+    def execute_invisible(self, entities, player, InputHandler, objects_ls=[]):
         # different input handler for invisible player
-            result_invis = input_handlers.invisible_risk_reward(player, entities, objects_ls)
+            result_invis = InputHandler.invisible_risk_reward(entities, objects_ls)
 
             if result_invis == 1:
                 # the player decided to fight
-                return self.combat_out_stealth(entities, player, objects_ls)
+                return self.combat_out_stealth(entities, player, InputHandler, objects_ls)
             elif result_invis == 2:
                 # the player decided to flee
                 return 2
@@ -64,13 +63,13 @@ class Risk_Reward(Mechanic):
             elif result_invis == 4:
                 # the player decides to try and steal the item
                 # think this can handle multiple items now
-                steal_success = self.steal(entities, player, objects_ls=objects_ls)
+                steal_success = self.steal(entities, player, InputHandler , objects_ls=objects_ls)
                 if steal_success == 0:
                     return 0
                 else:
                     return self.combat_out_stealth(entities, player)
 
-    def steal(self, entities, player, objects_ls=[]):
+    def steal(self, entities, player,  objects_ls=[]):
         """This function will handle the stealing of an item from the risk and reward encounter."""
 
         # get the number of fighters
@@ -89,12 +88,12 @@ class Risk_Reward(Mechanic):
             print("You failed to steal the item! \n You may get a Move in before it gets ugly.")
             return 1
 
-    def combat_out_stealth(self, entities, player):
+    def combat_out_stealth(self, entities, InputHandler, player):
         """This function will handle the combat after the player has failed to steal an item."""
-        move_input = input_handlers.combat(player)
+        move_input = InputHandler.combat()
         move_input.use(player, entities)
         player.invisible = False
-        result = Combat().execute(entities, player)
+        result = Combat().execute(entities, player, InputHandler)
         return result
 
 class Combat(Mechanic):
@@ -102,7 +101,7 @@ class Combat(Mechanic):
     def __init__(self, forced=True):
        super().__init__(forced)
 
-    def execute(self, entities, player):
+    def execute(self, entities, player, InputHandler):
         print("Combat!")
         round = 0
         enemies = [entity for entity in entities if entity.faction != "Heroes"]
@@ -113,7 +112,7 @@ class Combat(Mechanic):
             round += 1
 
             # get user combat/inv/flee input
-            menu_input = input_handlers.combat_menu(player)
+            menu_input = InputHandler.combat_menu()
 
             # returning 2 means trying to fleeing
             if menu_input == 2:
@@ -130,7 +129,7 @@ class Combat(Mechanic):
             if menu_input == 1:
                 # player is fighting
                 # should return the move the player wants to use
-                move_input = input_handlers.combat(player)
+                move_input = InputHandler.combat()
 
 
             # fight for a round

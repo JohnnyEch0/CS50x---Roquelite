@@ -43,7 +43,6 @@ def f_show_log():
         frame_input.grid(row=1, column=0, columnspan=2, sticky="nsew")
         
         frame_input.update()
-        """ BUG: When the log is hidden, the inp"""
 
     else:
         print("place")
@@ -52,8 +51,6 @@ def f_show_log():
         frame_main.update()
         frame_input.grid(row=1, column=0, columnspan=1, sticky="nsew")
         frame_input.update()
-        # shrink the main and input frame
-        # frame_main.grid(row=0, column=0,columnspan=1, sticky="nsew")
 
 
 
