@@ -1,3 +1,4 @@
+import threading
 
 import components.actions as actions
 
@@ -9,6 +10,7 @@ from data import moves_dat, fighters_dat
 from components import input_handlers
 from utils import Vector2
 import map.proc_gen as proc_gen
+import gui
 
 
 Game = True
@@ -30,7 +32,8 @@ player.moves = [
 
 
 
-InputHandler = input_handlers.InputHandler(player, level1)
+GUI = gui.App(player, level1)
+InputHandler = input_handlers.InputHandler(player, level1, GUI)
 
 
 
@@ -82,5 +85,15 @@ def update(player_upd, level_upd):
 
     return True
 
-while Game:
-    Game = update(player, level1)
+def game_loop(gui):
+    Game = True
+    while Game:
+        Game = update(player, level1)
+        gui.after(0, gui.update_gui)
+
+
+threading.Thread(target=game_loop, args=(GUI,)).start()
+print("DEBUG: GUI started.")
+GUI.mainloop()
+
+

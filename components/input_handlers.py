@@ -1,12 +1,12 @@
-import utils, random, printers, gui
+import utils, random, printers
 from data.input_dicts import exp_keys, combat_keys, combat_keys_extended, dict_directions, direction_names
 from items import Item
 from data import fighters_dat
 
 class InputHandler:
-    def __init__(self, player, level):
+    def __init__(self, player, level, gui):
         self.player = player
-        self.gui = gui.App(player, level) # None
+        self.gui = gui # None
 
     def room_update(self, room):
         """This function will handle the room printing """
@@ -219,7 +219,10 @@ class InputHandler:
             2. Return the dict with the new stats
             3. Update the player stats
             """
-            stats_upgrade = self.gui.main_frame.update_stats()
+            self.gui.main_frame.show_level_up()
+            stats_upgrade = self.gui.main_frame.level_up.update_stats()
+            
+            # stats_upgrade = self.gui.main_frame.update_stats()
 
             self.player.level += 1
             self.player.exp_to_next = fighters_dat.EXP_THRESHHOLDS[self.player.level]
@@ -233,8 +236,10 @@ class InputHandler:
             
 
             # print the level up info in the gui
-            confirm = self.gui.main_frame.print_level_up_info(old_stats, new_stats=self.player.get_stats_as_dict())
+            confirm = self.gui.main_frame.level_up.print_level_up_info(old_stats, new_stats=self.player.get_stats_as_dict())
+            # confirm = self.gui.main_frame.print_level_up_info(old_stats, new_stats=self.player.get_stats_as_dict())
             if confirm:
+                """ Show the player metrics hud - DO this inside of the GUi?"""
                 self.gui.main_frame.show_player_metrics_hud()
                 return
             

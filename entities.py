@@ -156,7 +156,7 @@ class Player(Fighter):
                             moves,
                             faction
                         )
-        self.exp = 0
+        self.exp = 800
         # exp to next level is the item in the fighters.dat EXP_THRESHHOLDS corresponding to the players level
         self.level = 1
         self.exp_to_next = 300 #set for level 1, IH will update this
