@@ -156,8 +156,10 @@ class Player(Fighter):
                             moves,
                             faction
                         )
-        self.exp = 500
+        self.exp = 0
+        # exp to next level is the item in the fighters.dat EXP_THRESHHOLDS corresponding to the players level
         self.level = 1
+        self.exp_to_next = 300 #set for level 1, IH will update this
         self.pos = pos
         self.inventory = [items.Gold(100), items.Item(**items_dat.HEALING_POTION), items.Item(**items_dat.DUST_OF_DISAPPEARANCE)]
         self.prev_pos = None

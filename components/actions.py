@@ -72,8 +72,11 @@ class Attack(Action):
         self.effect = effect
         self.type = type
 
-    def use(self, fighter, entities_enc):
-        target = get_target(entities_enc, fighter)
+    def use(self, fighter, entities_enc, target=None):
+
+        # check if the fighter is a player or an NPC
+        if fighter.faction != "Heroes":
+            target = get_target(entities_enc, fighter)
 
         # miss chance
         if random.randint(1, 100) > self.accuracy - target.evasion:

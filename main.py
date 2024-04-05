@@ -38,12 +38,15 @@ InputHandler = input_handlers.InputHandler(player, level1)
 def update(player_upd, level_upd):
     """Main game loop. This function will update the game state and return a boolean"""
     room_rn = level_upd.room_array[player_upd.pos[0]][player_upd.pos[1]]
+    # print(f"You are in a {room_rn.scene}.\n")
+    InputHandler.room_update(room_rn)
 
     """
     resolve the rooms encounter if its forced
     """
 
-    print(f"You are in a {room_rn.scene}.\n")
+    
+    
     entities, mechanic = room_rn.encounter.update()
     unforced_mechanic = None
     if mechanic:
@@ -73,7 +76,7 @@ def update(player_upd, level_upd):
         # TODO: Make the Village Start-option different
         # RN: Talk to NPC[0]
 
-        unforced_mechanic.execute(entities, player_upd, InputHandler)
+        unforced_mechanic.execute(entities, InputHandler)
     elif expo == 0:
         InputHandler.movement(room_rn)
 

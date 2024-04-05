@@ -38,7 +38,7 @@ encounter_types = {
     "None": 4,
     "Friendly": 20,
     "Rescue": 4,
-    "Risk & Reward": 30,
+    "Risk & Reward": 5,
     "Who Gets the Drop?": 4,
     "Catch the Scout": 3,
     "Time Limit": 4,

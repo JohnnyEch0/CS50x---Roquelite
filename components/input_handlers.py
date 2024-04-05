@@ -7,7 +7,15 @@ class InputHandler:
     def __init__(self, player, level):
         self.player = player
         self.gui = gui.App(player, level) # None
+
+    def room_update(self, room):
+        """This function will handle the room printing """
         
+        if self.gui:
+            self.gui.log_frame.update_log(f"You are in a {room.scene}.")
+            #self.gui.main_frame.room_update(room)
+        else:
+            print(f"You are in a {room.scene}.\n")
 
     def movement(self, room):
         directions = room.walkable_tiles
@@ -31,11 +39,14 @@ class InputHandler:
 
 
     def exploration(self, objects, entitites, unf_mechanic=None):
+        
         # print/gui part of the function
         while True:
             if self.gui:
+                self.gui.main_frame.player_metrics_update()
                 gui_options = []
-                """ if we have a gui, describe the room in the main window and give options in the input widget"""
+                
+                # self.gui.
                 print("Room to gui not implemented")
                 if objects:
                     gui_options.append(("Objects", exp_keys[0]))
@@ -44,6 +55,7 @@ class InputHandler:
                     """ BUG: in the village, the unf mechanic results in a NPC"""
                     gui_options.append((f"Talk to {entitites[0].name}", exp_keys[-2]))
                 gui_options.append(("move", exp_keys[-1]))
+                gui_options.append(("Map", "M"))
                 input = self.gui.input_widget.update(gui_options)
                 print(input)
             else:
@@ -71,7 +83,9 @@ class InputHandler:
             elif input == exp_keys[1]:
                 #TODO: is this varriable useless?
                 inv_selector = self.inventory_overview()
-                # Moved further inv handeling to inv_overview
+            elif input == "M":
+                print("map overlay requested from IH")
+                self.gui.main_frame.show_map_overlay()
 
             elif input == exp_keys[-2]:
                 print("IH-explo return trigger unf mechanic")
@@ -137,7 +151,7 @@ class InputHandler:
 
         # Inventory
         elif input == combat_keys_extended[NPC_amt+2]:
-            self.inventory_overview(self.player)
+            self.inventory_overview()
 
         elif input == combat_keys_extended[NPC_amt+3]:
             # movement
@@ -162,7 +176,7 @@ class InputHandler:
             print(f"{self.player.name} healed fully.")
 
         """ exp boost mechanic"""
-        price_exp_boost = (30 * self.player.level + 50 ) * (random.randint(1, 30) + 80) / 100
+        price_exp_boost = (30 * self.player.level + 50 ) * int((random.randint(1, 30) + 80) / 100)
 
         if self.player.inventory[0].amount < price_exp_boost:
             print("You do not have enough gold to train.")
@@ -180,7 +194,7 @@ class InputHandler:
             if input == "Q":
                 self.player.inventory[0].amount -= price_exp_boost
                 self.player.exp = self.player.exp * 1.5
-                print(f"{self.player.name} added 50% exp.")
+                print(f"{self.player.name} added 50% exp. New exp: {self.player.exp}")
 
 
         """ Levelling Up """
@@ -208,6 +222,7 @@ class InputHandler:
             stats_upgrade = self.gui.main_frame.update_stats()
 
             self.player.level += 1
+            self.player.exp_to_next = fighters_dat.EXP_THRESHHOLDS[self.player.level]
             # update the player_stat dict in fighters_dat accordingly
             for stat in stats_upgrade:
                 fighters_dat.player_stat_upgrade[stat] += stats_upgrade[stat]
@@ -220,12 +235,10 @@ class InputHandler:
             # print the level up info in the gui
             confirm = self.gui.main_frame.print_level_up_info(old_stats, new_stats=self.player.get_stats_as_dict())
             if confirm:
+                self.gui.main_frame.show_player_metrics_hud()
                 return
             
-
-
             
-
         else:
             att_points_spend = 0
             while att_points_spend < 6:
@@ -243,10 +256,13 @@ class InputHandler:
                 if self.update_player_stat_points(att_input, amt_input):
                     att_points_spend += int(amt_input)
             self.player.level += 1
+            self.player.exp_to_next = fighters_dat.EXP_THRESHHOLDS[self.player.level]
             self.player.update_stats(fighters_dat.player_stat_upgrade)
             self.print_level_up_info(old_stats)
-            
-        # execute the level up
+        
+
+        # update player exp to the next level
+        
 
     def update_player_stat_points(self, att, amt):
         """ This function updates the player stat choices"""
@@ -272,13 +288,23 @@ class InputHandler:
     """
 
     def trading(self, trader):
-        prompt = "Buy = Q    Sell = W   Talk = E    Exit = Any Other Key"
-        input = utils.get_input(prompt, combat_keys)
+        """This function will handle the trading mechanic."""
+
+        """ Print/Gui part of the function """
+        if self.gui:
+            print("Trading to main window not implemented")
+            gui_options = [("Buy", combat_keys[0]), ("Sell", combat_keys[1]), ("Talk", combat_keys[2]), ("Exit", combat_keys[-1])]
+            input = self.gui.input_widget.update(gui_options)
+        else:
+            prompt = "Buy = Q    Sell = W   Talk = E    Exit = Any Other Key"
+            input = utils.get_input(prompt, combat_keys)
+
+        """ Input handling part of the function """
         if input == combat_keys[0]:
-            buying(trader, self.player)
+            self.buying(trader)
 
         elif input == combat_keys[1]:
-            selling(trader, self.player)
+            self.selling(trader)
 
         elif input == combat_keys[2]:
             print("Talking not implemented")
@@ -286,22 +312,37 @@ class InputHandler:
         else:
             return
 
-        self.trading(trader, self.player)
+        self.trading(trader)
 
     def buying(self, trader):
-        prompt = "What would you like to buy?    "
+        """This function will handle the buying mechanic."""
         if not trader.inventory:
-            print(f"{trader.name} has no items to sell.")
-            return
-        for i, item in enumerate(trader.inventory):
-            prompt += f"{item.name} = {combat_keys[i]}    "
-        prompt += f"Exit = {combat_keys[-1]}    "
-        input = utils.get_input(prompt, combat_keys)
-        if input == combat_keys[-1]:
+                print(f"{trader.name} has no items to sell.")
+                return
+
+        """ Print/Gui part of the function"""
+        if self.gui:
+            print("Buying to main window not implemented")
+            gui_options = []
+            for i, item in enumerate(trader.inventory):
+                print(item.name, combat_keys_extended[i])
+                gui_options.append((item.name, combat_keys_extended[i]))
+            gui_options.append(("Exit", combat_keys_extended[-1]))
+            input = self.gui.input_widget.update(gui_options)
+            # combat_keys = [item[1] for item in gui_options]
+        else:
+            prompt = "What would you like to buy?    "
+            for i, item in enumerate(trader.inventory):
+                prompt += f"{item.name} = {combat_keys[i]}    "
+            prompt += f"Exit = {combat_keys[-1]}    "
+            input = utils.get_input(prompt, combat_keys)
+        
+        """ Input handling part of the function """
+        if input == combat_keys_extended[-1]:
             return
         else:
             for i, item in enumerate(trader.inventory):
-                if input == combat_keys[i]:
+                if input == combat_keys_extended[i]:
                     # check the gold item in the players inventory, if it is enough
                     if self.player.inventory[0].amount >= item.value:
                         self.player.inventory[0].amount -= item.value
@@ -315,25 +356,44 @@ class InputHandler:
         return
 
     def selling(self, trader):
-        if not self.player.inventory:
+        """This function will handle the selling mechanic."""
+        if not self.player.inventory or len(self.player.inventory) == 1:
             print(f"{self.player.name} has no items to sell.")
             return
-        prompt = "What would you like to sell?    "
-        for i, item in enumerate(self.player.inventory):
-            prompt += f"{item.name} = {combat_keys[i]}    "
-        prompt += f"Exit = {combat_keys[-1]}    "
-        input = utils.get_input(prompt, combat_keys)
-        if input == combat_keys[-1]:
+        elif trader.money < 1:
+            print(f"{trader.name} has no gold to buy items.")
+            return
+        
+        """ Print/Gui part of the function"""
+        if self.gui:
+            print("Selling to main window not implemented")
+            gui_options = []
+            for i, item in enumerate(self.player.inventory[1:]):
+                gui_options.append((item.name, combat_keys_extended[i]))
+            gui_options.append(("Exit", combat_keys_extended[-1]))
+            input = self.gui.input_widget.update(gui_options)
+            # combat_keys = [item[1] for item in gui_options]
+        else:
+            prompt = "What would you like to sell?    "
+            for i, item in enumerate(self.player.inventory):
+                prompt += f"{item.name} = {combat_keys[i]}    "
+            prompt += f"Exit = {combat_keys[-1]}    "
+            input = utils.get_input(prompt, combat_keys)
+
+        """ Input handling part of the function"""
+        if input == combat_keys_extended[-1]:
             return
         else:
             for i, item in enumerate(self.player.inventory[1:]):
-                if input == combat_keys[i]:
+                if input == combat_keys_extended[i]:
                     # if the trader has enough gold, the player can sell the item
                     if trader.money >= item.value:
                         self.player.inventory[0].amount += item.value
                         trader.inventory.append(item)
                         self.player.inventory.remove(item)
                         print(f"{self.player.name} sold {item.name} for {item.value} gold.")
+                    else:
+                        print(f"{trader.name} does not have enough gold to buy {item.name}.")
                     break
         self.selling(trader)
         return
@@ -346,10 +406,18 @@ class InputHandler:
         """This function will handle the risk and reward encounter.
         --> allow the player to take a battle with high reward or flee"""
 
-        self.risk_reward_info(entities)
+        info = self.risk_reward_info(entities)
 
-        prompt = "Risk and Reward:    Fight = Q    Flee = W"
-        input = utils.get_input(prompt, combat_keys)
+        if self.gui:
+            print("Risk and Reward to main window not implemented")
+            print(info) # TODO: send this to main window
+
+            gui_options = [("Fight", combat_keys[0]), ("Flee", combat_keys[1])]
+            input = self.gui.input_widget.update(gui_options)
+        else:
+            prompt = "Risk and Reward:    Fight = Q    Flee = W"
+            input = utils.get_input(prompt, combat_keys)
+        
         if input == combat_keys[0]:
             return 1
         elif input == combat_keys[1]:
@@ -363,30 +431,45 @@ class InputHandler:
             if i > 2:
                 info += "and "
         info += "\n They look dangerous, but have some good loot."
-        print(info)
-
+        
 
     def combat(self):
         """This function will handle any attack selection."""
-        prompt = "Your Attacks: "
-        for i, move in enumerate(self.player.moves):
-            prompt += f"{move.name} = {combat_keys[i]}    "
-        fight_input = utils.get_input(prompt, combat_keys)
+        if self.gui:
+            print("Combat to main window not implemented")
+            gui_options = []
+            for i, move in enumerate(self.player.moves):
+                gui_options.append((move.name, combat_keys[i]))
+            fight_input = self.gui.input_widget.update(gui_options)
+        else:
+            prompt = "Your Attacks: "
+            for i, move in enumerate(self.player.moves):
+                prompt += f"{move.name} = {combat_keys[i]}    "
+            fight_input = utils.get_input(prompt, combat_keys)
+
+        """ Input handling part of the function """
         for i, move in enumerate(self.player.moves):
             if fight_input == combat_keys[i]:
                 return self.player.moves[i]
-
-
         pass
 
     def combat_menu(self):
-        prompt = "Combat Menu:    Attack = Q    Inventory = W    Flee = E   Wait = R"
-        input = utils.get_input(prompt, combat_keys)
+        """This function will handle the combat menu."""
+        if self.gui:
+            print("Combat Menu to main window not implemented")
+            gui_options = [("Attack", combat_keys[0]), ("Inventory", combat_keys[1]), ("Flee", combat_keys[2]), ("Wait", combat_keys[3])]
+            input = self.gui.input_widget.update(gui_options)
+        else:
+            prompt = "Combat Menu:    Attack = Q    Inventory = W    Flee = E   Wait = R"
+            input = utils.get_input(prompt, combat_keys)
+
+        """ Input handling part of the function """
         if input == combat_keys[0]:
             return 1
         elif input == combat_keys[1]:
-            print("Inventory not implemented")
+            print("Inventory in Battle not implemented")
         elif input == combat_keys[2]:
+            # return 2 to flee
             return 2
         else:
             return
@@ -395,15 +478,20 @@ class InputHandler:
         """This function will handle the risk and reward encounter for invisible players."""
 
         self.risk_reward_info(entities)
-
-
-        prompt = "Risk and Reward:    Fight = Q    Flee = W    Stay Invisible = E "
-        # check if there is an item in the entities
-        if objects_ls:
-            prompt += f"    Steal the Loot = R"
-
-
-        input = utils.get_input(prompt, combat_keys)
+        if self.gui:
+            print("Risk and Reward to main window not implemented")
+            gui_options = [("Fight", combat_keys[0]), ("Flee", combat_keys[1]), ("Stay Invisible", combat_keys[2])]
+            if objects_ls:
+                gui_options.append(("Steal the Loot", combat_keys[3]))
+            input = self.gui.input_widget.update(gui_options)
+        else:
+            prompt = "Risk and Reward:    Fight = Q    Flee = W    Stay Invisible = E "
+            # check if there is an item in the entities
+            if objects_ls:
+                prompt += f"    Steal the Loot = R"#
+            input = utils.get_input(prompt, combat_keys)
+        
+        """ Input handling part of the function"""
         if input == combat_keys[0]:
             # start combat after the player gets a hit in
             return 1
@@ -422,7 +510,27 @@ class InputHandler:
                 print("There is nothing to steal. \n staying invisible.")
                 return 3
 
-
+    def target_selection(self, enemies):
+        """This function will handle the target selection for the player."""
+        # check if there is only one enemy
+        if len(enemies) == 1:
+            return enemies[0]
+        if self.gui:
+            print("Target Selection to main window not implemented")
+            gui_options = []
+            for i, entity in enumerate(enemies):
+                gui_options.append((entity.name, combat_keys_extended[i]))
+            input = self.gui.input_widget.update(gui_options)
+        else:
+            prompt = "Who do you want to target?    "
+            for i, entity in enumerate(enemies):
+                prompt += f"{entity.name} = {combat_keys_extended[i]}    "
+            input = utils.get_input(prompt, combat_keys_extended)
+        
+        for i, entity in enumerate(enemies):
+            if input == combat_keys_extended[i]:
+                return enemies[i]
+        pass
     """
     inventory things
     """

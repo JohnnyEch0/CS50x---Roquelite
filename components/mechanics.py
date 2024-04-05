@@ -11,7 +11,7 @@ class Village(Mechanic):
         # Maybe we shouldn't force this one?
         super().__init__(forced)
 
-    def execute(self, entities, player, InputHandler):
+    def execute(self, entities, InputHandler):
         print("Welcome to the Village!")
         """ This Input Handler should return us the trade or level up or rest machanic"""
         InputHandler.village(entities)
@@ -25,9 +25,9 @@ class Trade(Mechanic):
         super().__init__(forced)
 
 
-    def execute(self, entities, player, InputHandler):
+    def execute(self, entities, InputHandler):
         print(f"Welcome to my shop! Would you like to buy or sell something?")
-        InputHandler.trading(entities[0], player)
+        InputHandler.trading(entities[0])
 
 class Risk_Reward(Mechanic):
     def __init__(self, forced=True):
@@ -136,6 +136,7 @@ class Combat(Mechanic):
             for i in ini_list:
                 if i.health < 1:
                     ini_list.remove(i)
+                    enemies.remove(i)
                     print(f"{i.name} died. ")
                     if i.faction != "Heroes":
                         player.exp += i.exp_given
@@ -143,8 +144,11 @@ class Combat(Mechanic):
                     
                     
                 if i.faction == "Heroes":
-                    # move handles the target selection
-                    move_input.use(player, ini_list)
+                    # target selection should be done inside of input handler
+                    target = InputHandler.target_selection(enemies)
+
+                    # move_input.use should get the target from the input handler
+                    move_input.use(player, ini_list, target)
                 else:
                     i.fight(ini_list)
             if player.health < 1:

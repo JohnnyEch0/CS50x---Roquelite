@@ -41,6 +41,7 @@ class Gold(Item):
     def pick_up(self, player):
         print(f"You picked up {self.amount} gold.")
         player.inventory[0].amount += self.amount
+        print(f"You now have {player.inventory[0].amount} gold.")
     
     def __str__(self):
         return f"{self.amount} Gold Pieces"

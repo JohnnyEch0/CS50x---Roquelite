@@ -97,3 +97,23 @@ class Level:
         return walkable_tiles
 
 
+    def get_rooms_for_map_hud(self, player_x, player_y):
+        """Return the rooms surrounding the player."""
+        
+        rooms = []
+
+        for row_index, row in enumerate(self.room_array):
+            row_list = []
+            
+            for col_index, room in enumerate(row):
+                
+                if player_x - 3 <= row_index <= player_x + 3 and player_y - 3 <= col_index <= player_y + 3:
+                    """ when out of bounds, rooms.append(None)"""
+                    try:
+                        row_list.append(room)
+                    except IndexError:
+                        """ This is not needed."""
+                        row_list.append(None)
+            rooms.append(row_list)
+
+        return rooms
