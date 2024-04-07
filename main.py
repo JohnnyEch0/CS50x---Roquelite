@@ -27,7 +27,14 @@ player = entities.Player(Vector2(14, 13),
                          **fighters_dat.PLAYER_START_DATA)
 player.moves = [
     actions.Attack(player, **moves_dat.TACKLE_DATA),
-    actions.Heal(player, "Heal", 40)
+    # actions.Heal(player, "Heal", 10),
+    # actions.Buff(player, **moves_dat.BULK_UP_DATA),
+    # actions.Attack(player, **moves_dat.FEINT_DATA),
+    # actions.Buff(player, **moves_dat.TAKE_TIME_DATA),
+    # actions.Buff(player, **moves_dat.INNER_FOCUS_DATA),
+    #   actions.Buff(player, **moves_dat.MIND_OVER_MATTER_DATA),
+    actions.Attack(player, **moves_dat.SURF_DATA)
+
 ]
 
 
@@ -35,22 +42,23 @@ player.moves = [
 GUI = gui.App(player, level1)
 InputHandler = input_handlers.InputHandler(player, level1, GUI)
 
+narrator= GUI.main_frame.notebook.narration
 
+
+narrator.update_text("You are in a village. \n\nYou can explore the village or move to the next scene.")
 
 
 def update(player_upd, level_upd):
     """Main game loop. This function will update the game state and return a boolean"""
     room_rn = level_upd.room_array[player_upd.pos[0]][player_upd.pos[1]]
     # print(f"You are in a {room_rn.scene}.\n")
-    InputHandler.room_update(room_rn)
+    InputHandler.room_log(room_rn)
 
     """
     resolve the rooms encounter if its forced
     """
-
     
-    
-    entities, mechanic = room_rn.encounter.update()
+    entities, mechanic = room_rn.encounter.update(player_upd.level)
     unforced_mechanic = None
     if mechanic:
         if mechanic.forced:
@@ -66,6 +74,7 @@ def update(player_upd, level_upd):
             elif forc == 0:
                 # clear entities that are not NPC'S
                 entities = [entity for entity in entities if not isinstance(entity, Fighter)]
+                room_rn.encounter.done = True
         else:
             unforced_mechanic = mechanic
 
@@ -90,6 +99,7 @@ def game_loop(gui):
     while Game:
         Game = update(player, level1)
         gui.after(0, gui.update_gui)
+    # end of game
 
 
 threading.Thread(target=game_loop, args=(GUI,)).start()

@@ -8,11 +8,14 @@ class Room:
     def __init__(self, walkable_tiles, type):
         self.walkable_tiles = walkable_tiles
         self.type = type
+        self.explored = False
         self.scene = self.rand_scene()
         self.encounter = encounters.Encounter(self.random_encounter_type()) # function call is unnecessary?
+        
 
     def rand_scene(self):
         if self.type == "village":
+            self.explored = True
             return "village"
         
         roll = random.randint(1, 10)
@@ -96,24 +99,35 @@ class Level:
 
         return walkable_tiles
 
+    def explore_room(self, player_x: int, player_y: int):
+        """Set the room as explored."""
+        self.room_array[player_x][player_y].explored = True
 
-    def get_rooms_for_map_hud(self, player_x, player_y):
+    def get_rooms_for_map_hud(self, player_x: int, player_y: int):
         """Return the rooms surrounding the player."""
         
         rooms = []
+        
 
-        for row_index, row in enumerate(self.room_array):
+        for row_index, row in enumerate(self.room_array[player_x - 2:player_x + 3]):
             row_list = []
             
-            for col_index, room in enumerate(row):
-                
-                if player_x - 3 <= row_index <= player_x + 3 and player_y - 3 <= col_index <= player_y + 3:
-                    """ when out of bounds, rooms.append(None)"""
-                    try:
-                        row_list.append(room)
-                    except IndexError:
-                        """ This is not needed."""
-                        row_list.append(None)
+            for col_index, room in enumerate(row[player_y - 2:player_y + 3]):
+                try:
+                    row_list.append(room)
+
+                except IndexError:
+                    """ This is not needed."""
+                    row_list.append("Not a room")
+
             rooms.append(row_list)
+        
+        # append None if there is no room in rooms in th 5x5 grid
+        for i in range(5):
+            try:
+                if len(rooms[i]) < 5:
+                    rooms[i].append("Not a room")
+            except IndexError:
+                rooms.append(["Not a room" for _ in range(5)])
 
         return rooms

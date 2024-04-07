@@ -21,3 +21,10 @@ direction_names = {
     "S": "South",
     "A": "West"
 }
+
+direction_placements = {
+    "W": (0, 1),
+    "D": (1, 2),
+    "S": (2, 1),
+    "A": (1, 0)
+}

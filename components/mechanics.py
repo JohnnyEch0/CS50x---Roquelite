@@ -101,15 +101,18 @@ class Combat(Mechanic):
     def __init__(self, forced=True):
        super().__init__(forced)
 
-    def execute(self, entities, player, InputHandler):
+    def execute(self, entities, player, InputHandler, objects_ls=[]):
         print("Combat!")
         round = 0
         enemies = [entity for entity in entities if entity.faction != "Heroes"]
         entities.append(player)
         ini_list = sorted(entities, key=lambda x: x.initiative, reverse=True)
+        remember_stats = player.get_stats_as_dict()
         while True:
-            print(f"\n----Round {round}----")
+            InputHandler.log(f"\n----Round {round}----")
             round += 1
+
+            InputHandler.combat_ui(enemies, player)
 
             # get user combat/inv/flee input
             menu_input = InputHandler.combat_menu()
@@ -122,13 +125,13 @@ class Combat(Mechanic):
                 if result == 2:
                     player.move_back()
                     print("You fled!")
+                    reset_stats(player, remember_stats)
                     return 2 # player fled
                 else:
                     print("You failed to flee!")
 
             if menu_input == 1:
                 # player is fighting
-                # should return the move the player wants to use
                 move_input = InputHandler.combat()
 
 
@@ -140,22 +143,34 @@ class Combat(Mechanic):
                     print(f"{i.name} died. ")
                     if i.faction != "Heroes":
                         player.exp += i.exp_given
-                        print(f"You gained {i.exp_given} exp!")
+                        InputHandler.log(f"{i.name} gave {i.exp_given} exp.")
+                    continue
                     
                     
                 if i.faction == "Heroes":
-                    # target selection should be done inside of input handler
-                    target = InputHandler.target_selection(enemies)
-
-                    # move_input.use should get the target from the input handler
-                    move_input.use(player, ini_list, target)
+                    if menu_input == 1:
+                        # target selection in InputHandler
+                        # check if the move is targeted
+                        if move_input.targeted:
+                            target = InputHandler.target_selection(enemies)
+                        else:
+                            target = None
+                        # move_input.use should get the target from the input handler
+                        log = move_input.use(player, ini_list, target)
+                        InputHandler.log(log)
                 else:
-                    i.fight(ini_list)
+                    log = i.fight(ini_list)
+                    InputHandler.log(log)
+            
             if player.health < 1:
                 print("You died!")
                 return 1
             if len(ini_list) <= 1:
-                print(f"----room cleared----\n")
+                # reset the players stats
+                reset_stats(player, remember_stats)
+                
+
+                InputHandler.log("Scene cleared of enemies!")
                 return 0
 
     def flee(self, player, enemy_mod):
@@ -168,3 +183,11 @@ class Combat(Mechanic):
             return 1
 
 
+def reset_stats(player, remember_stats):
+    """This function will reset the players stats to their base stats."""
+    player.attack = remember_stats["Attack"]
+    player.defense = remember_stats["Defense"]
+    player.spell_attack = remember_stats["Spell Attack"]
+    player.spell_def = remember_stats["Spell Defense"]
+    player.initiative = remember_stats["Initiative"]
+    player.evasion = 0

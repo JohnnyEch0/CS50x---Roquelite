@@ -39,23 +39,21 @@ def get_enemies(fighter, entities_enc):
 
 
 class Action:
-    def __init__(self, fighter, name, effect=None):
+    def __init__(self, fighter, name, effect=None, targeted=True, description: str = "A Combat Action"):
         self.fighter = fighter
         self.name = name
         self.effect = effect
-
-    
+        self.targeted = targeted
+        self.description = description
 
 
 class Heal(Action):
     def __init__(self, fighter, name, amount, effect=None):
-        Action.__init__(self, fighter, name, effect=None)
-        self.roll = amount
-        self.effect = effect
+        Action.__init__(self, fighter, name, effect)
+        self.amount = amount
 
-    def use(self, fighter, entities_enc):
-        # TODO different mod then the damage_mod
-        heal_amt = fighter.spell_attack
+    def use(self, fighter, entities_enc=[], target=None):
+        heal_amt = self.amount
         # TODO target = smth from entities_enc
         target = fighter
         target.health += heal_amt
@@ -65,12 +63,12 @@ class Heal(Action):
 
 
 class Attack(Action):
-    def __init__(self, fighter, name, damage, accuracy=100, effect=None, type="physical"):
-        Action.__init__(self, fighter, name, effect=None)
-        self.damage = damage
-        self.accuracy = accuracy
-        self.effect = effect
-        self.type = type
+    def __init__(self, fighter, name, damage, accuracy=100, effect=None, type="physical", description: str = None):
+        Action.__init__(self, fighter, name, effect=None, description=description)
+        self.damage: int = damage
+        self.accuracy: int  = accuracy
+        self.effect: list = effect
+        self.type: str = type
 
     def use(self, fighter, entities_enc, target=None):
 
@@ -80,19 +78,24 @@ class Attack(Action):
 
         # miss chance
         if random.randint(1, 100) > self.accuracy - target.evasion:
-            print(
-                f"{fighter.name} missed {target.name}")
+            return f"{fighter.name} missed {target.name}"
             
         """ Damage calculation """
         damage = self.damage_calc(fighter, target)
         target.health -= damage
 
-        print(
-            f"{fighter.name} hit {target.name} for {damage} dmg, it is at {target.health} HP")
+        log = f"{fighter.name} hit {target.name} with {self.name} for {damage} dmg!"
         
         if self.effect:
-            print("Effect! nnnnot implemented yet!")
-            # self.effect.use(fighter, entities_enc)
+            # print("Effect! nnnnot implemented yet!")
+            log_effect = self.effect[0](fighter, *self.effect[1:], target=target)
+            if log_effect:
+                log += "\n" + log_effect
+
+
+        return log
+
+        
     
     def damage_calc(self, fighter, target):
         """ THis will calc the damage, Pokemon Style """
@@ -112,3 +115,95 @@ class Attack(Action):
 
         return int(non_rand * random_mod)
 
+
+class MultiAttack(Attack):
+    def __init__(self, fighter, name, damage=18, accuracy=70, effect=None, type="physical", min_hits=2, max_hits=5, description=None):
+        Attack.__init__(self, fighter, name, damage, accuracy, effect=None, type="physical", description=description)
+        self.min_hits = min_hits
+        self.max_hits = max_hits
+
+    def use(self, fighter, entities_enc, target=None):
+        # check if the fighter is a player or an NPC
+        if fighter.faction != "Heroes":
+            target = get_target(entities_enc, fighter)
+
+        # miss chance
+        if random.randint(1, 100) > self.accuracy - target.evasion:
+            print(f"{fighter.name} missed {target.name}")
+            return None
+            
+
+        hits = self.roll_hits()
+        damage_total = 0
+        for i in range(hits):
+            
+
+            """ Damage calculation """
+            damage = self.damage_calc(fighter, target)
+            target.health -= damage
+            damage_total += damage
+
+        
+        
+        if self.effect:
+            print("Effect! nnnnot implemented yet!")
+
+        return f"{fighter.name} hit the {target.name} {hits} times for {damage_total} dmg!"
+
+    def roll_hits(self):
+        # weighted random roll
+        weights = []
+        for i in range(self.max_hits-self.min_hits):
+            # get progressively higher weights
+            weights.insert(0, 1*(i)+1)
+
+        # min weight should be low
+        weights.insert(0, 1)
+        
+        return random.choices(range(self.max_hits-self.min_hits+1), weights=weights)[0] + 2
+    
+
+class Buff(Action):
+    """ A move that will buff stats by a amount percent."""
+    def __init__(self, fighter, name, stats: list, amounts: list = [25, 25] , effect=None, description = None):
+        Action.__init__(self, fighter, name, effect=None, targeted=False, description=description)
+        self.effect = effect
+        self.stats = stats
+        self.amounts = amounts
+
+    def use(self, fighter, ini_list=None, target=None, friends=None):
+        # buff the stats by 25*amount percent
+        log = ""
+        for i, stat in enumerate(self.stats):
+            boost = getattr(fighter, stat)
+            boost += boost * self.amounts[i] / 100
+            setattr(fighter, stat, int(boost))
+            log += f"{fighter.name} buffed {stat} by {self.amounts[i]} %!"
+            if i == 0 and len(self.stats) > 1:
+                log += "\n"
+            # print(boost, fighter.attack, fighter.defense)
+
+            
+        
+
+        return log
+
+
+class group_buff(Buff):
+    """ A move that will buff stats by a amount percent for all friends."""
+    def __init__(self, fighter, name, stats: list, amounts: list = [25, 25] , effect=None, description = None):
+        Buff.__init__(self, fighter, name, stats, amounts, effect, description)
+
+    def use(self, fighter, entities=None):
+        friends = [i for i in entities if i.faction == fighter.faction]
+        for friend in friends:
+            for i, stat in enumerate(self.stats):
+                boost = getattr(friend, stat)
+                boost += boost * self.amounts[i] / 100
+                setattr(friend, stat, int(boost))
+                
+                
+
+        return f"{fighter.name} buffed all his friends' atk and ini by 10%!"
+
+    

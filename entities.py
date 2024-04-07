@@ -82,9 +82,8 @@ class Fighter(Entity):
         self.initiative = self.calculate_stats(base_initiative)
         
         self.evasion = evasion
-        if moves is None:
-            moves = [actions.Attack(self, **moves_dat.TACKLE_DATA)]
-        self.moves = [moves]
+        self.moves = self.set_moves(moves)
+
         self.alive = True
         self.exp_given = exp_given
         self.max_health = self.calculate_health(base_health)
@@ -106,6 +105,7 @@ class Fighter(Entity):
         return f"Health: {self.health}/{self.max_health}\nAttack: {self.attack}\nDefense: {self.defense}\nSpell Attack: {self.spell_attack}\nSpell Defense: {self.spell_def}\nInitiative: {self.initiative}\n"
     
     def get_stats_as_dict(self):
+        """ Returns the stats as a dictionary, First Letters are capitalized, empty spaces between words."""
         return {
             "Health": f"{self.health}/{self.max_health}",
             "Attack": self.attack,
@@ -115,12 +115,36 @@ class Fighter(Entity):
             "Initiative": self.initiative
         }
         
+    def set_moves(self, moves=None):
+                if moves is None:
+                    moves = [actions.Attack(self, **moves_dat.TACKLE_DATA)]
+                # self.moves = [moves]
+
+                # if those moves are not of the class Action, we need to convert them
+                for i, move in enumerate(moves):
+                    if not isinstance(move, actions.Action):
+                        # not every move is a attack, so we need to check if it is an attack
+                        if "damage" in move:
+                            if move["name"] == "Fist Combo":
+                                moves[i] = actions.MultiAttack(self, **move)
+                            else:
+                                moves[i] = actions.Attack(self, **move)
+                        elif "stats" in move:
+                            # if the spell is called WAR_DRUMS_DATA
+                            if move["name"] == "War Drums":
+                                moves[i] = actions.group_buff(self, **move)
+                            else:
+                                moves[i] = actions.Buff(self, **move)
+                print(moves)
+                return moves
     """ Generic Battle Functions """
 
     def fight(self, entities_enc):
         # TODO better move ai
         roll = random.choice(self.moves)
-        roll[0].use(self, entities_enc)
+        print(f"DEBUG: {self.name} uses {roll}")
+        log = roll.use(self, entities_enc)
+        return log
 
     def check_invisible(self):
         if self.invisible_timer > 0:

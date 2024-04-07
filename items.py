@@ -11,11 +11,31 @@ class Item:
         self.stackable = stackable
         self.stack = 1
         self.equippable = equippable
-        self.equipped = False
+
     
     # we can use this for logging
     def __str__(self):
         return f"{self.name} - {self.description}"
+    
+    def pick_up(self, player):
+        """ adds self to the players inventory, returns log message"""
+        # check if the item is stackable
+        if self.stackable:
+            # check if the player has the item in their inventory
+            for item in player.inventory:
+                if item.name == self.name:
+                    item.stack += 1
+                    # print(f"You picked up {self.name}. You now have {item.stack} {self.name}s.")
+                    log = f"You picked up {self.name}. You now have {item.stack} {self.name}s."
+                    return log
+            # if the player does not have the item in their inventory
+            player.inventory.append(self)
+            log = f"You picked up {self.name}."
+        else:
+            player.inventory.append(self)
+            log = f"You picked up {self}."
+        return log
+
     
     def use(self, user, target):
         if self.consumable:
@@ -41,7 +61,8 @@ class Gold(Item):
     def pick_up(self, player):
         print(f"You picked up {self.amount} gold.")
         player.inventory[0].amount += self.amount
-        print(f"You now have {player.inventory[0].amount} gold.")
+        log = f"You picked up {self.amount} gold."
+        return log
     
     def __str__(self):
         return f"{self.amount} Gold Pieces"

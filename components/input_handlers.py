@@ -7,8 +7,11 @@ class InputHandler:
     def __init__(self, player, level, gui):
         self.player = player
         self.gui = gui # None
+        self.notebook_gui = self.gui.main_frame.notebook if self.gui else None
+        self.level = level
+        
 
-    def room_update(self, room):
+    def room_log(self, room):
         """This function will handle the room printing """
         
         if self.gui:
@@ -17,14 +20,26 @@ class InputHandler:
         else:
             print(f"You are in a {room.scene}.\n")
 
+    def log(self, message):
+        if self.gui:
+            self.gui.log_frame.update_log(message)
+        else:
+            print(message)
+
+    def narrate(self, message):
+        if self.gui:
+            self.notebook_gui.narration.update_text(message)
+        else:
+            print(message)
+        
     def movement(self, room):
         directions = room.walkable_tiles
         if self.gui:
             gui_options = []
             for direction in directions:
                 gui_options.append((direction_names[direction], direction))
-            print("Movement to main window not implemented")
-            mov_input = self.gui.input_widget.update(gui_options)
+            # print("Movement to main window not implemented")
+            mov_input = self.gui.input_widget.update(gui_options, type="movement")
         else:
             mov_input = utils.get_input(f"Where will you go: {directions}?", directions)
 
@@ -32,6 +47,7 @@ class InputHandler:
         self.player.prev_pos = utils.Vector2(self.player.pos[0], self.player.pos[1])
 
         self.player.pos += dict_directions[f"{mov_input}"]
+        self.level.explore_room(self.player.pos[0], self.player.pos[1])
 
         if self.player.invisible:
             self.player.invisible_timer -= 1
@@ -47,7 +63,6 @@ class InputHandler:
                 gui_options = []
                 
                 # self.gui.
-                print("Room to gui not implemented")
                 if objects:
                     gui_options.append(("Objects", exp_keys[0]))
                 gui_options.append(("Inventory", exp_keys[1]))
@@ -55,7 +70,6 @@ class InputHandler:
                     """ BUG: in the village, the unf mechanic results in a NPC"""
                     gui_options.append((f"Talk to {entitites[0].name}", exp_keys[-2]))
                 gui_options.append(("move", exp_keys[-1]))
-                gui_options.append(("Map", "M"))
                 input = self.gui.input_widget.update(gui_options)
                 print(input)
             else:
@@ -70,12 +84,10 @@ class InputHandler:
                 if objects_selector:
                     objects.remove(objects_selector)
                     # different route for gold
-                    if objects_selector.name == "Gold":
-                        objects_selector.pick_up(self.player)
-                    else:
-                        self.player.inventory.append(objects_selector)
-                        print(f"{self.player.name} added {objects_selector.name} to their inventory.")
-                print("room-Objects not implemented")
+                    log = objects_selector.pick_up(self.player)
+                    self.log(log)
+                    self.gui.main_frame.notebook.inventory.update(self.player.inventory)
+
                 # list objects, allow interaction
                 # this may be items or structures
                 # items can be added to the player inventory
@@ -83,10 +95,6 @@ class InputHandler:
             elif input == exp_keys[1]:
                 #TODO: is this varriable useless?
                 inv_selector = self.inventory_overview()
-            elif input == "M":
-                print("map overlay requested from IH")
-                self.gui.main_frame.show_map_overlay()
-
             elif input == exp_keys[-2]:
                 print("IH-explo return trigger unf mechanic")
                 return 1 # trigger unf mechanic from main
@@ -412,11 +420,9 @@ class InputHandler:
         --> allow the player to take a battle with high reward or flee"""
 
         info = self.risk_reward_info(entities)
+        self.narrate(info)
 
         if self.gui:
-            print("Risk and Reward to main window not implemented")
-            print(info) # TODO: send this to main window
-
             gui_options = [("Fight", combat_keys[0]), ("Flee", combat_keys[1])]
             input = self.gui.input_widget.update(gui_options)
         else:
@@ -430,12 +436,13 @@ class InputHandler:
 
     def risk_reward_info(self, entities):
         """This function will handle the risk and reward information"""
-        info = "You see"
+        info = "You see: "
         for i, entity in enumerate(entities):
             info += (f"a {entity.name}  ")
-            if i > 2:
-                info += "and "
+            if i > 1:
+                info += "and  "
         info += "\n They look dangerous, but have some good loot."
+        return info
         
 
     def combat(self):
@@ -473,6 +480,8 @@ class InputHandler:
             return 1
         elif input == combat_keys[1]:
             print("Inventory in Battle not implemented")
+            self.inv_items_consumables()
+            
         elif input == combat_keys[2]:
             # return 2 to flee
             return 2
@@ -536,6 +545,15 @@ class InputHandler:
             if input == combat_keys_extended[i]:
                 return enemies[i]
         pass
+
+    def combat_ui(self, enemies, player):
+        """This function will handle the combat UI."""
+        if self.gui:
+            print("Combat UI to main window not implemented")
+            self.notebook_gui.combat.draw_combat(enemies, player)
+            # self.gui.main_frame.combat_ui.update(player, enemies)
+        else:
+            pass
     """
     inventory things
     """

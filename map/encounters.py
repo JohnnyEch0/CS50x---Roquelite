@@ -12,19 +12,22 @@ class Encounter():
     def __init__(self, type):
         self.type = type
         self.objects_ls = []
-        self.entities, self.mechanic = self.process_encounter()
+        self.entities, self.mechanic = None, None
         self.random_gold()
+        self.done = False
 
     """encounter generation """
 
-    def process_encounter(self):
+    def process_encounter(self, level):
         """ This should route encounter types to the appropriate function."""
         if self.type == "None":
             return [], None
         elif self.type == "Friendly":
-            return self.roll_friendly_npc()
+            return self.roll_friendly_npc(level)
         elif self.type == "Risk & Reward":
-            return self.roll_risk_rew()
+            return self.roll_risk_rew(level)
+        elif self.type == "Basic Combat":
+            return self.basic_combat(level)
         elif self.type == "village":
             # generate Village scene
             # maybe this should be called every time we get into the hub
@@ -34,7 +37,23 @@ class Encounter():
         else:
             return [], None
 
-    def roll_friendly_npc(self):
+    def roll_enemies(self, player_level, weight: int):
+        """ get random enemies, weight is the heaviness of the encounter"""
+
+
+        key = f"{player_level}, {weight}"
+        print("key= ",key)
+        amount, enemies = fighters_dat.encounter_weights[key]
+        print("enemies= ",enemies)
+        print("amount= ",amount)
+        entities_ls = []
+        for i in range(amount):
+            roll = utils.random_choice_list_tuple(enemies)
+            print(f"DEBUG:  player_level= {player_level}")
+            entities_ls.append(entities.Fighter(level=player_level, **roll))
+        return entities_ls
+
+    def roll_friendly_npc(self, level):
         """Roll for a friendly NPC."""
 
         entities_ls = []
@@ -44,17 +63,23 @@ class Encounter():
         entities_ls.append(entities.Trader(**roll))
         return entities_ls, mechanics.Trade()
 
-    def roll_risk_rew(self):
+    def roll_risk_rew(self, level):
         """Roll for a risk and reward encounter."""
-        entities_ls = []
-        for i in range(random.randint(2, 4)):
-            roll = utils.random_choice_list_tuple(fighters_dat.goblins)
-            entities_ls.append(entities.Fighter(level=1, **roll))
+        entities_ls = self.roll_enemies(level, weight=2)
 
         roll = utils.random_choice_list_tuple(items_dat.uncommon_items)
         self.objects_ls.append(items.Item(**roll))
 
         return entities_ls, mechanics.Risk_Reward()
+    
+    def basic_combat(self, level):
+        """Roll for a basic combat encounter."""
+        entities_ls = self.roll_enemies(level, weight=1)
+        return entities_ls, mechanics.Combat()
+        
+
+            
+
 
     """ Village """
 
@@ -74,14 +99,17 @@ class Encounter():
 
     """update"""
 
-    def update(self):
+    def update(self, level):
+        if self.done:
+            return [], None    
+        self.entities, self.mechanic = self.process_encounter(level)
         """Tell the game: entities and mechanics of this room."""
         return self.entities, self.mechanic
 
     """misc"""
     def random_gold(self):
         """Randomly generate gold in the room"""
-        if random.randint(1, 10) > 7:
+        if random.randint(1, 10) > 9:
             return
         n = int(random.triangular(2, 200))
         self.objects_ls.append(items.Gold(n))
