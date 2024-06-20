@@ -20,14 +20,7 @@ PLAYER_START_DATA = {
     # total stats: 720
 }
 
-player_stat_upgrade = {
-    "health": 0,
-    "attack": 0,
-    "spell_attack": 0,
-    "defense": 0,
-    "spell_def": 0,
-    "initiative": 0,
-}
+
 
 # Used D&D 5e's exp thresholds
 EXP_THRESHHOLDS = {
@@ -81,6 +74,7 @@ GOBLIN_BRUISER_DATA = {
     "moves": [moves_dat.FIST_COMBO_DATA, moves_dat.BULK_UP_DATA],
     "faction": "Goblins",
     "exp_given": 150
+    # total stats: 280
 }
 
 GOBLIN_WAR_DRUMMER_DATA = {
@@ -154,11 +148,15 @@ aberrations = [
 # we need to pick an enemy Tier depending on player level and encounter weight7
 """ the first value of the key is the player level, the second is the encounter weight"""
 encounter_weights = {
-    "1, 1": (3, goblins),
-    "1, 2": (4, goblins),
-    "2, 1": (4, goblins),
-    "2, 2": (2, aberrations),
-    "3, 1": (3, aberrations),
-    "3, 2": (4, aberrations)
+    "1, 1": (1, goblins),
+    "1, 2": (2, goblins),
+    "2, 1": (2, goblins),
+    "2, 2": (3, goblins),
+    "3, 1": (4, goblins),
+    "3, 2": (2, aberrations),
+    "4, 1": (3, aberrations),
+    "4, 2": (4, aberrations),
+
 }
 
+enemy_tiers = (goblins, aberrations, "tier3", "tier4", "tier5")

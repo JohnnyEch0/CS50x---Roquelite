@@ -1,8 +1,11 @@
+""" This module contains the classes for the procedural generation of the map. """
+
 from data.level_map import level_map
 import data.scenes_dat as scenes_dat
 import random
 import utils
 import map.encounters as encounters
+
 
 class Room:
     def __init__(self, walkable_tiles, type):
@@ -10,7 +13,7 @@ class Room:
         self.type = type
         self.explored = False
         self.scene = self.rand_scene()
-        self.encounter = encounters.Encounter(self.random_encounter_type()) # function call is unnecessary?
+        self.encounter = encounters.Encounter(self.random_encounter_type(), self.scene) # function call is unnecessary?
         
 
     def rand_scene(self):
@@ -19,7 +22,7 @@ class Room:
             return "village"
         
         roll = random.randint(1, 10)
-        if roll < 3:
+        if roll < 5:
             return utils.random_choice(scenes_dat.useful_places)
         else:
             return utils.random_choice(scenes_dat.places)

@@ -1,5 +1,6 @@
-import threading
+""" Main file for the game. This file will run the game loop and handle the game state. """
 
+import threading
 import components.actions as actions
 
 import entities
@@ -26,15 +27,7 @@ player = entities.Player(Vector2(14, 13),
                          player_name,
                          **fighters_dat.PLAYER_START_DATA)
 player.moves = [
-    actions.Attack(player, **moves_dat.TACKLE_DATA),
-    # actions.Heal(player, "Heal", 10),
-    # actions.Buff(player, **moves_dat.BULK_UP_DATA),
-    # actions.Attack(player, **moves_dat.FEINT_DATA),
-    # actions.Buff(player, **moves_dat.TAKE_TIME_DATA),
-    # actions.Buff(player, **moves_dat.INNER_FOCUS_DATA),
-    #   actions.Buff(player, **moves_dat.MIND_OVER_MATTER_DATA),
-    actions.Attack(player, **moves_dat.SURF_DATA)
-
+    actions.Attack(**moves_dat.TACKLE_DATA),
 ]
 
 
@@ -85,9 +78,6 @@ def update(player_upd, level_upd):
     # this will return 1 when mechanic should be raised, 0 if moving to the next scene
     expo = InputHandler.exploration(room_rn.encounter.objects_ls, entities, unforced_mechanic)
     if expo == 1 and unforced_mechanic:
-        # TODO: Make the Village Start-option different
-        # RN: Talk to NPC[0]
-
         unforced_mechanic.execute(entities, InputHandler)
     elif expo == 0:
         InputHandler.movement(room_rn)
@@ -99,11 +89,17 @@ def game_loop(gui):
     while Game:
         Game = update(player, level1)
         gui.after(0, gui.update_gui)
+        
+    if not Game:
+        print("Game Over")
+        narrator.update_text("Game Over")
+
     # end of game
 
 
 threading.Thread(target=game_loop, args=(GUI,)).start()
-print("DEBUG: GUI started.")
 GUI.mainloop()
+
+
 
 

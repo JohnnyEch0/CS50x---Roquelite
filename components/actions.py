@@ -1,9 +1,11 @@
+""" This module contains the classes for the different actions that can be taken in combat. """
+
 import random
 
 import utils
 from data.input_dicts import combat_keys
 
-""" This module contains the classes for the different actions that can be taken in combat. """
+
 
 def get_target(entities_enc, fighter):
         """Returns the target of the action. 
@@ -39,8 +41,8 @@ def get_enemies(fighter, entities_enc):
 
 
 class Action:
-    def __init__(self, fighter, name, effect=None, targeted=True, description: str = "A Combat Action"):
-        self.fighter = fighter
+    """ The base class for all actions in the game. Actions are moves that can be used in combat."""
+    def __init__(self,  name=None, effect=None, targeted=True, description: str = "A Combat Action"):
         self.name = name
         self.effect = effect
         self.targeted = targeted
@@ -48,13 +50,13 @@ class Action:
 
 
 class Heal(Action):
-    def __init__(self, fighter, name, amount, effect=None):
-        Action.__init__(self, fighter, name, effect)
+    """ Not implemented yet."""
+    def __init__(self, name, amount, effect=None):
+        Action.__init__(self, name, effect)
         self.amount = amount
 
     def use(self, fighter, entities_enc=[], target=None):
         heal_amt = self.amount
-        # TODO target = smth from entities_enc
         target = fighter
         target.health += heal_amt
         print(f"{fighter.name} healed {target.name} for {heal_amt}, new HP: {target.health} ")
@@ -63,8 +65,9 @@ class Heal(Action):
 
 
 class Attack(Action):
-    def __init__(self, fighter, name, damage, accuracy=100, effect=None, type="physical", description: str = None):
-        Action.__init__(self, fighter, name, effect=None, description=description)
+    """ A move that will deal damage to the target and may trigger an effect."""
+    def __init__(self, name, damage, accuracy=100, effect=None, type="physical", description: str = None):
+        Action.__init__(self, name, effect=None, description=description)
         self.damage: int = damage
         self.accuracy: int  = accuracy
         self.effect: list = effect
@@ -98,7 +101,7 @@ class Attack(Action):
         
     
     def damage_calc(self, fighter, target):
-        """ THis will calc the damage, Pokemon Style """
+        """ This will calc the damage, Pokemon Style """
         # level and crit
         crit_roll = 2 if random.randint(1, 20) <= fighter.crit_chance else 1
         lev_crit = fighter.level * crit_roll / 5 + 2
@@ -117,8 +120,9 @@ class Attack(Action):
 
 
 class MultiAttack(Attack):
-    def __init__(self, fighter, name, damage=18, accuracy=70, effect=None, type="physical", min_hits=2, max_hits=5, description=None):
-        Attack.__init__(self, fighter, name, damage, accuracy, effect=None, type="physical", description=description)
+    """ A move that will hit the target multiple times. """
+    def __init__(self, name, damage=18, accuracy=70, effect=None, type="physical", min_hits=2, max_hits=5, description=None):
+        Attack.__init__(self, name, damage, accuracy, effect=None, type="physical", description=description)
         self.min_hits = min_hits
         self.max_hits = max_hits
 
@@ -165,8 +169,8 @@ class MultiAttack(Attack):
 
 class Buff(Action):
     """ A move that will buff stats by a amount percent."""
-    def __init__(self, fighter, name, stats: list, amounts: list = [25, 25] , effect=None, description = None):
-        Action.__init__(self, fighter, name, effect=None, targeted=False, description=description)
+    def __init__(self, name, stats: list, amounts: list = [25, 25] , effect=None, description = None):
+        Action.__init__(self, name, effect=None, targeted=False, description=description)
         self.effect = effect
         self.stats = stats
         self.amounts = amounts
@@ -181,18 +185,13 @@ class Buff(Action):
             log += f"{fighter.name} buffed {stat} by {self.amounts[i]} %!"
             if i == 0 and len(self.stats) > 1:
                 log += "\n"
-            # print(boost, fighter.attack, fighter.defense)
-
-            
-        
-
         return log
 
 
 class group_buff(Buff):
     """ A move that will buff stats by a amount percent for all friends."""
-    def __init__(self, fighter, name, stats: list, amounts: list = [25, 25] , effect=None, description = None):
-        Buff.__init__(self, fighter, name, stats, amounts, effect, description)
+    def __init__(self, name, stats: list, amounts: list = [25, 25] , effect=None, description = None):
+        Buff.__init__(self, name, stats, amounts, effect, description)
 
     def use(self, fighter, entities=None):
         friends = [i for i in entities if i.faction == fighter.faction]
@@ -201,8 +200,6 @@ class group_buff(Buff):
                 boost = getattr(friend, stat)
                 boost += boost * self.amounts[i] / 100
                 setattr(friend, stat, int(boost))
-                
-                
 
         return f"{fighter.name} buffed all his friends' atk and ini by 10%!"
 

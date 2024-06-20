@@ -1,3 +1,4 @@
+""" This file contains utility functions and classes that are used in the game. """
 import random
 
 def get_input(text, options):

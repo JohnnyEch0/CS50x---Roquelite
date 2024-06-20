@@ -46,20 +46,72 @@ DUST_OF_DISAPPEARANCE = {
         'stackable': False
     }
 
-uncommon_items = [
-    (HEALING_POTION, 3),
-    (DUST_OF_DISAPPEARANCE, 1),
-]
+
 
 # RARE_ITEMS: Items that are very useful.
 
-INFERNAL_DAGGER = {
-    'name': 'Infernal Dagger',
-    'value': 500,
-    'description': 'A dagger that is always warm to the touch.'
+RING_OF_HEALTH = {
+    'name': 'Ring of Health',
+    'value': 150,
+    'description': 'A ring that increases your health by 10.',
 }
 
-rare_items = [
-    (INFERNAL_DAGGER, 1)
+SWORD = {
+    'name': 'Sword',
+    'value': 150,
+    'description': 'A sword that increases your attack by 10.',
+}
+
+SHIELD = {
+    'name': 'Shield',
+    'value': 150,
+    'description': 'A shield that increases your defense by 10.',
+}
+
+WAND = {
+    'name': 'Wand',
+    'value': 150,
+    'description': 'A wand that increases your spell attack by 10.',
+}
+
+ROBE = {
+    'name': 'Robe',
+    'value': 150,
+    'description': 'A robe that increases your spell defense by 10.',
+}
+
+BOOTS = {
+    'name': 'Boots',
+    'value': 150,
+    'description': 'A pair of boots that increases your initiative by 10.',
+}
+
+VICIOUS_KNIFE = {
+    'name': 'Vicious Knife',
+    'value': 150,
+    'description': 'A knife that increases your critical chance by 1.',
+}
+
+EVASIVE_CLOAK = {
+    'name': 'Evasive Cloak',
+    'value': 150,
+    'description': 'A cloak that increases your evasion by 5.',
+}
+
+uncommon_items = [
+    (HEALING_POTION, 3),
+    (DUST_OF_DISAPPEARANCE, 2),
+]
+
+
+leveled_items = [
+    (RING_OF_HEALTH, 1),
+    (SWORD, 1),
+    (SHIELD, 1),
+    (WAND, 1),
+    (ROBE, 1),
+    (BOOTS, 1),
+    (VICIOUS_KNIFE, 1),
+    (EVASIVE_CLOAK, 1),
 ]
 
