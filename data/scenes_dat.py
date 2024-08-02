@@ -1,3 +1,5 @@
+""" Data and weights for random scene and encounter generation. """
+
 import random
 import utils
 
@@ -17,15 +19,21 @@ places = {
 }
 
 useful_places = {
-    "Smithy": 4,
-    "Shrine": 3,
+    "Training Grounds": 3,
+    "Shrine": 1,
+    "ruined Wizard's Shop": 3,
+    "Sacred Grove": 3,
+}
+
+useful_places_not_implemented = {
     "Ancient Library": 2,
     "Healer's Hut": 2,
     "Mystic's Tower": 3,
     "Sacred Grove": 2,
     "Hidden Forge": 1,
     "Alchemist's Lab": 4,
-    "Training Grounds": 3,
+    "Smithy": 3,
+    
     "Artifact Collector": 2,
     "Eldritch Archive": 1,
     "Underground Market": 3,
@@ -35,10 +43,10 @@ useful_places = {
 }
 
 encounter_types = {
-    "None": 4,
+    "None": 2,
     "Friendly": 2,
     "Risk & Reward": 3,
-    "Basic Combat": 9,
+    "Basic Combat": 2,
 }
 
 encounter_types_not_implemented = {
@@ -54,18 +62,6 @@ encounter_types_not_implemented = {
     "A Call for Help": 2
 }
 
-
-
-
-
-def test_scenes_dat():
-    random_useful_places = [utils.random_choice(useful_places) for _ in range(5)]
-    random_places = [utils.random_choice(places) for _ in range(5)]
-    random_encounter_types = [utils.random_choice(encounter_types) for _ in range(5)]
-
-    print(f" places = {random_places}")
-    print(f" encounter_types = {random_encounter_types}")
-    print(f" useful_places = {random_useful_places}")
 
 
 

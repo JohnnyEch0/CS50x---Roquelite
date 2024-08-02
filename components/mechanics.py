@@ -1,3 +1,4 @@
+"""This module will contain the different mechanics that can be used in the game."""
 
 import random
 from entities import Fighter
@@ -7,19 +8,22 @@ class Mechanic():
         self.forced = forced
 
 class Village(Mechanic):
+    """ 
+    This could probably be removed and done in Input Handlers
+    """
+
     def __init__(self, forced=False):
-        # Maybe we shouldn't force this one?
         super().__init__(forced)
 
     def execute(self, entities, InputHandler):
-        print("Welcome to the Village!")
         """ This Input Handler should return us the trade or level up or rest machanic"""
         InputHandler.village(entities)
 
 class Trade(Mechanic):
     """
     This class will handle the trading mechanics.
-    Right now a lot of it is still inside the input handler :c
+    Right now a lot of it is still inside the input handler
+    Maybe we can move it there alltogether
     """
     def __init__(self, forced=False):
         super().__init__(forced)
@@ -30,6 +34,7 @@ class Trade(Mechanic):
         InputHandler.trading(entities[0])
 
 class Risk_Reward(Mechanic):
+    """This class will handle the risk and reward mechanics."""
     def __init__(self, forced=True):
         super().__init__(forced)
 
@@ -108,6 +113,7 @@ class Combat(Mechanic):
         entities.append(player)
         ini_list = sorted(entities, key=lambda x: x.initiative, reverse=True)
         remember_stats = player.get_stats_as_dict()
+        remember_stats["Evasion"] = player.evasion
         while True:
             InputHandler.log(f"\n----Round {round}----")
             round += 1
@@ -170,7 +176,7 @@ class Combat(Mechanic):
                 reset_stats(player, remember_stats)
                 
 
-                InputHandler.log("Scene cleared of enemies!")
+                InputHandler.log("----Scene cleared of enemies!----\n")
                 return 0
 
     def flee(self, player, enemy_mod):
@@ -184,10 +190,41 @@ class Combat(Mechanic):
 
 
 def reset_stats(player, remember_stats):
-    """This function will reset the players stats to their base stats."""
+    """
+    This function will reset the players stats to their base stats.
+    Used in Combat because of temporary boosts and debuffs.
+    """
     player.attack = remember_stats["Attack"]
     player.defense = remember_stats["Defense"]
     player.spell_attack = remember_stats["Spell Attack"]
     player.spell_def = remember_stats["Spell Defense"]
     player.initiative = remember_stats["Initiative"]
-    player.evasion = 0
+    player.evasion = remember_stats["Evasion"]
+
+
+""" Object Mechanics"""
+
+class Move_Learning(Mechanic):
+    """ Takes a list of moves and lets the player choose one to learn."""
+    def __init__(self, moves: list, forced=False):
+        super().__init__(forced)
+        self.moves = moves
+
+    def execute(self, entities, player, InputHandler):
+        InputHandler.move_learning_selection(self.moves)
+        return 0
+    
+class Shrine(Mechanic):
+    """
+    This class will handle the shrine mechanics.
+    An object that will boost the players stats permanently.
+    """
+    def __init__(self, stat, amount, forced=False):
+        super().__init__(forced)
+        self.stat = stat
+        self.amount = amount
+
+    def execute(self, entities, player, InputHandler):
+        player.base_stats[self.stat] += self.amount 
+        InputHandler.log(f"Your base {self.stat} increased by {self.amount}.")
+        return 0

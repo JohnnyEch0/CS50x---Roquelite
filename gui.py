@@ -1,4 +1,4 @@
-""" Copied from tkinter folder, this is V2 """
+""" Graphical User Interface for the Main Game Loop """
 
 import datetime
 import tkinter as tk
@@ -7,11 +7,13 @@ import ttkbootstrap as ttk
 from data.input_dicts import direction_placements
 
 class App(ttk.Window):
+    """ Main GUI for the Main Game Loop"""
     def __init__(self, player, level):
         # Main Setup
         super().__init__(themename = "darkly")
         self.title = ("Main Game Loop GUI")
-        self.geometry("800x450")
+        self.geometry("1600x900")
+        self.attributes("-fullscreen", True)
         self.minsize(400, 225)
         self.layout_setup()
 
@@ -43,17 +45,20 @@ class App(ttk.Window):
         # self.mainloop()
         # stop the mainloop
 
+    
     def update_gui(self) -> None:
         """ This function is called from the main game loop to update the GUI"""
-        print("Updating GUI")
         self.main_frame.player_metrics_update()
         self.main_frame.notebook.map_update()
   
     
     def layout_setup(self):
-        screen_width = self.winfo_screenwidth() # get the screen width
-        screen_height = self.winfo_screenheight() # get the screen height
+        """ Creates grid and maxsite for the main window"""
+        screen_width = self.winfo_screenwidth() 
+        screen_height = self.winfo_screenheight() 
         self.maxsize(screen_width, screen_height)
+
+        # grid configuration
         self.columnconfigure(0, weight=2, uniform="group_main")
         self.columnconfigure(1, weight=1, uniform="group_main")
         self.rowconfigure(0, weight=5, uniform="group_main")
@@ -95,6 +100,7 @@ class Menu(tk.Menu):
 
 
 class Input(ttk.Frame):
+    """ Input Frame, holds buttons for the player to interact with the game"""
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -106,12 +112,13 @@ class Input(ttk.Frame):
         self.create_widgets()
 
     def create_widgets(self, options=None):
-        """ This function should get options as an argument and create buttons for each option """
-        """ Options are a tuple of a string and the value to be returned when the button is clicked"""
-        
-
-        answer_for_game = tk.StringVar(value=None)
+        """ 
+        This function should get options as an argument and create buttons for each option 
+        Options are a tuple of a string and the value to be returned when the button is clicked
+        """
+        # fallback 
         if not options:
+            
             button1 = ttk.Button(self, text="Useless Option 1", command= lambda: print("Useless Option 1"))
             button2 = ttk.Button(self, text="Placeholder Option 2", command= lambda: print("Useless Option 2"))
             # place widgets
@@ -119,6 +126,7 @@ class Input(ttk.Frame):
             button2.grid(row=1, column=1, sticky="nsew")
             return
         
+        # create buttons for each option
         else:
 
             for i, option in enumerate(options):
@@ -126,12 +134,15 @@ class Input(ttk.Frame):
                                     text=option[0], 
                                     command= lambda option=option: self.input.set(option[1]),
                                     )
+                # some buttons should have specific positions
                 if option[0] == "move":
                     button.grid(row=2, column=3, sticky="nsew", padx=5, pady=2)
                 elif i < 4:
                     button.grid(row=0, column=i, sticky="nsew", padx=5, pady=2)
                 elif i < 8:
                     button.grid(row=1, column=i-3, sticky="nsew", padx=5, pady=2)
+                if option[0] == "Exit" and not options[0] == "move":
+                    button.grid(row=2, column=3, sticky="nsew", padx=5, pady=2)
                 
     
     def update(self, options: tuple, type: str = "None"):
@@ -161,10 +172,6 @@ class Input(ttk.Frame):
 
     def create_movement_widgets(self, options):
         """ This function should create buttons for movement options"""
-        # north button should be at col 1, row 0
-        # east button should be at col 2, row 1
-        # south button should be at col 1, row 2
-        # west button should be at col 0, row 1
         for i, option in enumerate(options):
             button = ttk.Button(self, 
                                 text=option[0], 
@@ -175,7 +182,7 @@ class Input(ttk.Frame):
 
 class Main_Frame(ttk.Frame):
     """ 
-    The Main Frame of the UI will hold the Narration, Combat and Overlay map + maybe Inventory?
+    The Main Frame of the UI will hold the PLayer Metrics, and a Notebook for the different tabs
     """
     def __init__(self, parent):
         super().__init__(parent)
@@ -254,6 +261,7 @@ class Main_Frame(ttk.Frame):
    
 
 class level_up(ttk.Frame):
+    """ Show the player the option to level up their stats and, once done, a summary"""
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -365,6 +373,7 @@ class level_up(ttk.Frame):
         
 
 class Main_Notebook(ttk.Notebook):
+    """ Notebook for the different tabs in the main frame, holds the Narration, Combat, Inventory, Stats and Map Tab"""
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -387,6 +396,10 @@ class Main_Notebook(ttk.Notebook):
         self.map = self.create_map()
         self.map.pack()
         self.map_update()
+
+        # tab five - Information
+        self.info = Info(self)
+        self.info.pack()
         
 
         # add tabs to the notebook
@@ -395,16 +408,16 @@ class Main_Notebook(ttk.Notebook):
         self.add(self.inventory, text="Inventory")
         self.add(self.stats, text="Stats")
         self.add(self.map, text="Map")
-        # print("Self tabs",self.tabs())
-        # print(" Self Select:",self.select())
-        # print(self.index(self.select()))
-        # self.select(1)
+        # info is invisible by default
+        self.add(self.info, text="Info")
+        self.hide(5)
         
    
         self.grid(row=1, column=0, columnspan=4, sticky="nsew")
 
     def update_tabs(self):
         self.create_tabs()
+        self.select(0)
 
     """ Map Tab """
 
@@ -433,29 +446,38 @@ class Main_Notebook(ttk.Notebook):
 
     def map_update(self):
         """ Update the 5x5 map of the rooms around the player"""
+
         # get the rooms around the player
         rooms = self.parent.parent.level.get_rooms_for_map_hud(self.parent.parent.player.pos[0], self.parent.parent.player.pos[1])
 
         for i, row in enumerate(rooms):
             for j, room in enumerate(row):
                 try:
+                    # if the room is not a room, set the text to " " and the relief to flat, so it looks like an empty space
                     if room == "Not a room":
                         self.map.array[i][j].configure(text=" ")
-                        # set the relief to flat
                         self.map.array[i][j].configure(relief="flat")
                         continue
+                    # show the room, if it is explored
                     if room.explored:
                         self.map.array[i][j].configure(text=f"{room.scene}")
+                    # if the room is not explored, show "unexplored"
                     else:
                         self.map.array[i][j].configure(text="unexplored")
-                    
-                    # draw a box around each room - bc Not a room might have removed it
+
                     self.map.array[i][j].configure(relief="groove")
                 except IndexError:
                     print("DEBUG: Index Error in map_update", i, j, room)
 
+    """ Info Tab"""
+    def inform(self, items):
+        """ Feed items that have a name and a description to the info tab"""
+        self.info.update_info(items)
+        self.add(self.info, text="Info")
+        self.select(5)
 
 class Narration(ttk.Frame):
+    """ Narration Tab, will display the narration of the game to the player """
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -464,11 +486,11 @@ class Narration(ttk.Frame):
         
         self.placeholder = ""
         self.index = 0
-        self.type_tempo = 80
+        self.type_tempo = 30 # speed of the typing effect
 
 
     def create_widgets(self):
-        label = ttk.Label(self, textvariable=self.text, font = "Arial 10 ", anchor="nw")
+        label = ttk.Label(self, textvariable=self.text, font = "Arial 13 ", anchor="w")
         label.pack()
     
     def update_text(self, text):
@@ -484,6 +506,7 @@ class Narration(ttk.Frame):
 
 
 class Inventory(ttk.Frame):
+    """ Inventory Tab, will display the players inventory"""
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -491,9 +514,6 @@ class Inventory(ttk.Frame):
         self.create_widgets()
 
     def create_widgets(self, inventory=None):
-        # label = ttk.Label(self, text="This will be the Inventory Tab, for now this will be handled via the input window below", font = "Arial 10 ") # create a label
-        # label.pack()
-
         """ Create a notebok for the inventory"""
         self.item_type_notebook = ttk.Notebook(self)
         equipment = ttk.Frame(self.item_type_notebook)
@@ -503,14 +523,17 @@ class Inventory(ttk.Frame):
         if not inventory:
             inventory = self.app.player.inventory
         for i, item in enumerate(inventory):
-            if item.equippable:
-                equiped = "Equipped" if item.equipped else ""
-                label = ttk.Label(equipment, text=f"{item.name} : {equiped}", font="Arial 10")
-            elif item.consumable:
-                label = ttk.Label(consumables, text=f"{item.name} : {item.stack}", font="Arial 10")
-            elif item.amount: # this is gold
-                continue
-            label.pack(anchor="w", padx=5, pady=2, fill="y")
+            try:
+                if item.equippable:
+                    equiped = "Equipped" if item.equipped else ""
+                    label = ttk.Label(equipment, text=f"{item.name} : {equiped}", font="Arial 13")
+                elif item.consumable:
+                    label = ttk.Label(consumables, text=f"{item} : {item.stack}", font="Arial 13")
+                elif item.amount: # this is gold
+                    continue
+                label.pack(anchor="w", padx=5, pady=2, fill="both")
+            except AttributeError:
+                print("DEBUG: AttributeError in Inventory create_widgets", item, item.amount)
 
         
         self.item_type_notebook.add(equipment, text="Equipment")
@@ -524,6 +547,7 @@ class Inventory(ttk.Frame):
 
 
 class Combat(ttk.Frame):
+    """ Show combataints and their health bars"""
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -554,17 +578,21 @@ class Combat(ttk.Frame):
         
 
 class PlayerStats(ttk.Frame):
+    """ Show the player stats"""
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
         self.app = parent.parent.parent
-        self.stats = ["max health", "attack", "spell_attack", "defense", "spell_def", "initiative"]
-        self.player_stats = [self.app.player.max_health, self.app.player.attack, self.app.player.spell_attack, self.app.player.defense, self.app.player.spell_def, self.app.player.initiative]
+        self.stats = ["Health", "Attack", "Spell Attack", "Defense", "Spell Defense", "Initiative"]
+        self.player_stats = [self.app.player.health, self.app.player.attack, self.app.player.spell_attack, self.app.player.defense, self.app.player.spell_def, self.app.player.initiative]
         self.player_stats_tk = [tk.StringVar(value=stat) for stat in self.player_stats]
         self.create_widgets()
         self.pack()
 
     def create_widgets(self):
+        for widget in self.winfo_children():
+            widget.destroy()
+
         label = ttk.Label(self, text="Player Stats", font = "Arial 20 ") # create a label
         label.pack()
         # create a table
@@ -575,11 +603,42 @@ class PlayerStats(ttk.Frame):
         # stats = self.app.player.get_stats_as_dict()
         for i, stat in enumerate(self.stats):
             table.insert("", "end", values=(stat, self.player_stats_tk[i].get()))
-            # label = ttk.Label(self, text=f"{self.stats[i]} : {self.player_stats_tk[i].get()}", font="Arial 10")
-            # label.pack()
+    
+    def update(self):
+        for i, stat in enumerate(self.stats):
+            self.player_stats_tk[i].set(self.app.player.get_stats_as_dict()[stat])
+        self.create_widgets()
+            
+            
+class Info(ttk.Frame):
+    """ Show information about items, enemies, etc."""
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.app = parent.parent.parent
+        self.create_widgets()
+
+    def create_widgets(self, items=None):
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(0, weight=2)
+        if items:
+            for i, item in enumerate(items):
+                label = ttk.Label(self, text=f"{item.name}", font = "Arial 10 ")
+                label.grid(row=i, column=0, sticky="nesw", padx=5, pady=5)
+                information = ttk.Label(self, text=f"{item.description}", font = "Arial 10 ")
+                information.grid(row=i, column=1, sticky="nesw", padx=5, pady=5 )
+        else:
+            label = ttk.Label(self, text="This will be the Info Tab", font = "Arial 10 ") # create a label
+            label.pack()
+
+    def update_info(self, items):
+        for widget in self.winfo_children():
+            widget.destroy()
+        self.create_widgets(items)
 
 
 class Log_Frame(ttk.Frame):
+    """ Log Frame, will display the log of the game to the player"""
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -606,11 +665,15 @@ class Log_Frame(ttk.Frame):
         self.columnconfigure(1, weight=1, uniform="group2")
     
     def update_log(self, message):
+        if not message:
+            return
         self.log.insert("end", f"{message}\n")
         # get hours, minutes and seconds
         now = datetime.datetime.now()
 
         timestamp = now.strftime("%H:%M:%S")
+        if "\n" in message:
+            timestamp += "\n"
         self.log_timestamp.insert("end", f"{timestamp}\n")
 
 
@@ -618,12 +681,3 @@ class Log_Frame(ttk.Frame):
         self.log_timestamp.see("end")
         self.log.update()
         self.log_timestamp.update()
-
-
-
-
-
-        
-
-# run
-# app = App()

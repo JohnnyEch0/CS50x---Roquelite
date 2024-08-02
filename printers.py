@@ -1,3 +1,6 @@
+""" This file contains the functions that print the prompts and options for the player to choose from. 
+Used when the GUI is turned off.
+"""
 from data.input_dicts import exp_keys, combat_keys, combat_keys_extended
 
 def explore_room(objects, entities, unf_mechanic):
